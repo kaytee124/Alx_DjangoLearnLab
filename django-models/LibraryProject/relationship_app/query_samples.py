@@ -4,10 +4,10 @@ for book in books:
     print(book.title)
 
 
-library_book = Library.objects.get(name="Central Library")
+library_book = Library.objects.get(name=library_name)
 books = library_book.books.all()
 for book in books:
-    print(book.title)
+        print(book.title)
 
-librarian = Librarian.objects.get(library__name="Central Library").name
+librarian = Librarian.objects.get(library__name=library_name).name
 print(librarian)
