@@ -27,18 +27,20 @@ class LibraryDetailView(DetailView):
         books = library.books.all()
         return render(self.request, 'templates/relationship_app/library_detail.html', {'library': library, 'books': books})
 
-def login(request):
-    if request.method == 'POST':
+class LoginView(View):
+    template_name = 'templates/relationship_app/login.html'
+    def get(self, request):
+        form = AuthenticationForm()
+        return render(request, self.template_name, {'form': form})
+    def post(self, request):
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return HttpResponse('Login successful')
+            return redirect('list_books')
         else:
-            return render(request, 'templates/relationship_app/login.html', {'error': 'Invalid username or password'})
-    else:
-        return render(request, 'templates/relationship_app/login.html',{'Error': "Invalid request method"})
+            return render(request, self.template_name, {'error': 'Invalid username or password'})
 
 def register(request):
     if request.method == 'POST':
@@ -52,6 +54,7 @@ def register(request):
     else:
         return render(request, 'templates/relationship_app/register.html', {'Error': "Invalid request method"})
     
-def logout(request):
-    logout(request)
-    return HttpResponse('Logged out successfully')
+class LogoutView(View):
+    template_name = 'templates/relationship_app/logout.html'
+    def get(self, request):
+        return render(request, self.template_name)
