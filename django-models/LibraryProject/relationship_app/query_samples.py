@@ -6,7 +6,7 @@ for book in books:
 
 
 library = Library.objects.get(name=library_name)
-books = Book.objects.filter(libraries=library)
+books = library.books.all()
 for book in books:
     print(book.title)
 
