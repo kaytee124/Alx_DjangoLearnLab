@@ -10,6 +10,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import redirect
+from django.views.generic import View
+from django.contrib.auth.forms import AuthenticationForm
 
 
 # Create your views here.
@@ -43,19 +45,18 @@ class LoginView(View):
             return render(request, self.template_name, {'error': 'Invalid username or password'})
 
 def register(request):
-        def get(self, request):
-            form = UserCreationForm()
-            return render(request, 'templates/relationship_app/register.html', {'form': form})
-        return render(request, 'templates/relationship_app/register.html', {'form': form})
+    template_name = 'templates/relationship_app/register.html'
+    def get(self, request):
+        form = UserCreationForm()
+        return render(request, self.template_name, {'form': form})
     def post(self, request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            login(request, form.instance)
+            user = form.save()
+            login(request, user)
             return redirect('list_books')
         else:
-            return render(request, 'templates/relationship_app/register.html', {'form': form})
-    
+            return render(request, self.template_name, {'form': form})
 class LogoutView(View):
     template_name = 'templates/relationship_app/logout.html'
     def get(self, request):
