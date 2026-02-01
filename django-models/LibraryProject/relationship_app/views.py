@@ -8,6 +8,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import redirect
 
 
 # Create your views here.
@@ -40,12 +42,13 @@ def login(request):
 
 def register(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = User.objects.create_user(username=username, password=password)
-        user.save()
-        login(request, user)
-        return HttpResponse('User created successfully')
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            login(request, form.instance)
+            return HttpResponse('User created successfully')
+        else:
+            return render(request, 'templates/relationship_app/register.html', {'form': form})
     else:
         return render(request, 'templates/relationship_app/register.html', {'Error': "Invalid request method"})
     
