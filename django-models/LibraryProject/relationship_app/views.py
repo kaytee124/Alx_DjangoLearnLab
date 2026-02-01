@@ -16,7 +16,7 @@ class LibraryDetailView(DetailView):
     template_name = 'templates/relationship_app/library_detail.html'
     context_object_name = 'library'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['books'] = self.object.books.all()
-        return context
+    def render_to_response(self, context):
+        library = self.get_object()
+        books = library.books.all()
+        return render(self.request, 'templates/relationship_app/library_detail.html', {'library': library, 'books': books})
