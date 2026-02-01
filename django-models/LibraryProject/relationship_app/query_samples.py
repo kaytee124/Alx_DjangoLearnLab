@@ -1,12 +1,12 @@
 author = Author.objects.get(name=author_name)
-books = author.books.all()
+books = Book.objects.filter(author=author)
 
 for book in books:
     print(book.title)
 
 
 library = Library.objects.get(name=library_name)
-books = library.books.all()
+books = Book.objects.filter(libraries=library)
 for book in books:
     print(book.title)
 
