@@ -43,16 +43,18 @@ class LoginView(View):
             return render(request, self.template_name, {'error': 'Invalid username or password'})
 
 def register(request):
-    if request.method == 'POST':
+        def get(self, request):
+            form = UserCreationForm()
+            return render(request, 'templates/relationship_app/register.html', {'form': form})
+        return render(request, 'templates/relationship_app/register.html', {'form': form})
+    def post(self, request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             login(request, form.instance)
-            return HttpResponse('User created successfully')
+            return redirect('list_books')
         else:
             return render(request, 'templates/relationship_app/register.html', {'form': form})
-    else:
-        return render(request, 'templates/relationship_app/register.html', {'Error': "Invalid request method"})
     
 class LogoutView(View):
     template_name = 'templates/relationship_app/logout.html'
