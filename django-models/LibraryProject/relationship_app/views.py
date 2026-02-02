@@ -12,25 +12,26 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import redirect
 from django.views.generic import View
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import user_passes_test
 
 
 # Create your views here.
 def list_books(request):
     books = Book.objects.all()
-    return render(request, 'templates/relationship_app/list_books.html', {'books': books})
+    return render(request, 'relationship_app/list_books.html', {'books': books})
 
 class LibraryDetailView(DetailView):
     model = Library
-    template_name = 'templates/relationship_app/library_detail.html'
+    template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
 
-    def render_to_response(self, context):
-        library = self.get_object()
-        books = library.books.all()
-        return render(self.request, 'templates/relationship_app/library_detail.html', {'library': library, 'books': books})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['books'] = self.object.books.all()
+        return context
 
 class LoginView(View):
-    template_name = 'templates/relationship_app/login.html'
+    template_name = 'relationship_app/login.html'
     def get(self, request):
         form = AuthenticationForm()
         return render(request, self.template_name, {'form': form})
@@ -45,19 +46,35 @@ class LoginView(View):
             return render(request, self.template_name, {'error': 'Invalid username or password'})
 
 def register(request):
-    template_name = 'templates/relationship_app/register.html'
-    def get(self, request):
-        form = UserCreationForm()
-        return render(request, self.template_name, {'form': form})
-    def post(self, request):
+    if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             return redirect('list_books')
-        else:
-            return render(request, self.template_name, {'form': form})
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'relationship_app/register.html', {'form': form})
+
 class LogoutView(View):
-    template_name = 'templates/relationship_app/logout.html'
+    template_name = 'relationship_app/logout.html'
     def get(self, request):
         return render(request, self.template_name)
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'admin')
+def admin_view(request):
+    return render(request, 'relationship_app/list_books.html')
+
+@login_required 
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'librarian')
+def librarian_view(request):
+    return render(request, 'relationship_app/library_detail.html')
+
+@login_required
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'member')
+def member_view(request):
+    return render(request, 'relationship_app/member_view.html')
