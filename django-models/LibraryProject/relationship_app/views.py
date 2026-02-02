@@ -66,15 +66,15 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 @user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'admin')
-def admin_view(request):
+def Admin(request):
     return render(request, 'relationship_app/list_books.html')
 
 @login_required 
 @user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'librarian')
-def librarian_view(request):
+def Librarian(request):
     return render(request, 'relationship_app/library_detail.html')
 
 @login_required
 @user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'member')
-def member_view(request):
+def Member(request):
     return render(request, 'relationship_app/member_view.html')
