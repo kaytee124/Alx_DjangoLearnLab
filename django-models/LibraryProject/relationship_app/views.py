@@ -65,16 +65,16 @@ class LogoutView(View):
 from django.contrib.auth.decorators import login_required
 
 @login_required
-@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'admin')
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'Admin')
 def Admin(request):
     return render(request, 'relationship_app/list_books.html')
 
 @login_required 
-@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'librarian')
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'Librarian')
 def Librarian(request):
     return render(request, 'relationship_app/library_detail.html')
 
 @login_required
-@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'member')
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'Member')
 def Member(request):
     return render(request, 'relationship_app/member_view.html')
