@@ -70,7 +70,7 @@ def Admin(request):
     return render(request, 'relationship_app/admin_view.html')
 
 @login_required 
-@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'Librarian')
+@user_passes_test(lambda u: hasattr(u, 'profile') and u.profile.role == 'Librarians')
 def Librarian(request):
     return render(request, 'relationship_app/librarian_view.html')
 
