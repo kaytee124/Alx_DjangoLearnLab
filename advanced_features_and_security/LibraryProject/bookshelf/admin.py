@@ -22,7 +22,7 @@ class BookAdmin(admin.ModelAdmin):
 
 
 
-class ModelAdmin(UserAdmin):
+class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
     list_display = (
@@ -48,5 +48,5 @@ class ModelAdmin(UserAdmin):
     )
 
 
-admin.site.register(CustomUser, ModelAdmin)
+admin.site.register(CustomUser, CustomUserAdmin)
 
