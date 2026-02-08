@@ -13,10 +13,11 @@ from django.shortcuts import redirect
 from django.views.generic import View
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import user_passes_test
+from .models import CustomUser
 from .forms import BookForm
 
 from django.contrib.auth.decorators import permission_required
-
+from django.contrib.auth.backends import BaseBackend
 
 # Create your views here.
 def list_books(request):
@@ -114,3 +115,20 @@ def delete_book(request, pk):
     return render(request, 'relationship_app/delete_book.html', {'book': book})
 
 
+
+class emailbackend(BaseBackend):
+    def authenticate(self,request,username=None,password=None):
+        try:
+            user = CustomUser.objects.get(email=username)
+            if user and user.check_password(password):
+                return user
+            else:
+                return None
+        except CustomUser.DoesNotExist:
+            return None
+
+    def get_user(self, user_id):
+        try:
+            return CustomUser.objects.get(pk=user_id)
+        except CustomUser.DoesNotExist:
+            return None
