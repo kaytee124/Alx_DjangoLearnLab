@@ -56,9 +56,10 @@ class Book(models.Model):
     
     class Meta:
         permissions = [
-            ('can_add_book', 'Can add book'),
-            ('can_change_book', 'Can change book'),
-            ('can_delete_book', 'Can delete book'),
+            ('can_view', 'Can view'),
+            ('can_create', 'Can create'),
+            ('can_edit', 'Can edit'),
+            ('can_delete', 'Can delete'),
         ]
 
 class Library(models.Model):
@@ -121,18 +122,13 @@ def assign_group(sender, instance, created, **kwargs):
         if created_group:
             content_type = ContentType.objects.get_for_model(Book)
 
-            if role == 'Admin':
-                perms = ['can_add_book', 'can_change_book', 'can_delete_book']
-            elif role == 'Librarian':
-                perms = ['can_add_book', 'can_change_book']
+            if role == 'Editors':
+                perms = ['can_view', 'can_create', 'can_edit']
+            elif role == 'Viewers':
+                perms = ['can_view']
+            elif role == 'Admin':
+                perms = ['can_view', 'can_create', 'can_edit', 'can_delete']
             else:
-                perms = []
+                perms = ['can_view']
 
-            for codename in perms:
-                permission = Permission.objects.get(
-                    codename=codename,
-                    content_type=content_type
-                )
-                group.permissions.add(permission)
-
-        instance.groups.add(group)
+        instance.groups.set(Group.objects.filter(name__in=perms))
