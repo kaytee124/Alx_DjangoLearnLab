@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Member Area</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            background: linear-gradient(120deg, #84fab0, #8fd3f4);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            width: 70%;
+            margin: 80px auto;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            font-size: 16px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #333;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+        a:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Member Area</h1>
+        <p>Welcome, {{ request.user.username }} 👋</p>
+
+        <p>You can browse books and view library details.</p>
+
+        <a href="{% url 'list_books' %}">Browse Books</a>
+    </div>
+</body>
+</html>

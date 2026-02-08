@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Librarian Panel</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c7be5;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        a {
+            color: #2c7be5;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Librarian Panel</h1>
+        <p>Hello, <strong>{{ request.user.username }}</strong></p>
+
+        <h3>Your Responsibilities</h3>
+        <ul>
+            <li>Manage library books</li>
+            <li>Track borrowed items</li>
+            <li>Maintain library records</li>
+        </ul>
+
+        <a href="{% url 'list_books' %}">View All Books</a>
+    </div>
+</body>
+</html>
