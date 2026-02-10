@@ -55,6 +55,22 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Note: Only works if your server is behind a reverse proxy (nginx, Apache)
 SECURE_SSL_REDIRECT = True
 
+# SECURE_HSTS_SECONDS: HTTP Strict Transport Security (HSTS) duration in seconds
+# SECURITY: Instructs browsers to only access the site via HTTPS for the specified time
+# 31536000 = 1 year (365 days * 24 hours * 60 minutes * 60 seconds)
+# This prevents protocol downgrade attacks and cookie hijacking
+SECURE_HSTS_SECONDS = 31536000
+
+# SECURE_HSTS_INCLUDE_SUBDOMAINS: Include all subdomains in HSTS policy
+# SECURITY: Extends HSTS protection to all subdomains, preventing attacks on subdomains
+# Set to True to ensure all subdomains are also accessed only via HTTPS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+# SECURE_HSTS_PRELOAD: Allow HSTS preloading
+# SECURITY: Enables HSTS preload list submission, providing protection even on first visit
+# Set to True to allow browsers to preload your domain's HSTS policy
+SECURE_HSTS_PRELOAD = True
+
 # CSRF_COOKIE_SECURE: CSRF cookie only sent over HTTPS
 # SECURITY: Prevents CSRF tokens from being intercepted over unencrypted connections
 CSRF_COOKIE_SECURE = True
