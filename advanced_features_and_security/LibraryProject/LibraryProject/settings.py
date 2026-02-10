@@ -25,14 +25,64 @@ SECRET_KEY = 'django-insecure-paqd-7dg!d*7!*)imqskfpryf_%5g!kb86rm&3c(t5g#^$#oa3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+# ============================================================================
+# SECURITY SETTINGS
+# ============================================================================
+# These settings implement multiple layers of security to protect against
+# common web vulnerabilities: XSS, CSRF, clickjacking, SQL injection, etc.
+
+# ALLOWED_HOSTS: Restricts which host/domain names Django can serve
+# SECURITY: Prevents Host header injection attacks
+# In production, replace '*' with your actual domain(s)
+ALLOWED_HOSTS = ['*']  # TODO: Replace with actual domain in production
+
+# SECURE_BROWSER_XSS_FILTER: Enables browser's built-in XSS filter
+# SECURITY: Provides additional XSS protection at browser level
+# Note: This is a defense-in-depth measure, not a primary security control
 SECURE_BROWSER_XSS_FILTER = True
+
+# X_FRAME_OPTIONS: Prevents page from being embedded in iframes
+# SECURITY: Protects against clickjacking attacks
+# 'DENY' means the page cannot be displayed in a frame at all
 X_FRAME_OPTIONS = 'DENY'
+
+# SECURE_CONTENT_TYPE_NOSNIFF: Prevents MIME type sniffing
+# SECURITY: Prevents browsers from guessing content types, reducing XSS risk
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# SECURE_SSL_REDIRECT: Forces all HTTP traffic to HTTPS
+# SECURITY: Ensures all communication is encrypted, preventing man-in-the-middle attacks
+# Note: Only works if your server is behind a reverse proxy (nginx, Apache)
 SECURE_SSL_REDIRECT = True
+
+# CSRF_COOKIE_SECURE: CSRF cookie only sent over HTTPS
+# SECURITY: Prevents CSRF tokens from being intercepted over unencrypted connections
 CSRF_COOKIE_SECURE = True
+
+# SESSION_COOKIE_SECURE: Session cookie only sent over HTTPS
+# SECURITY: Prevents session hijacking over unencrypted connections
 SESSION_COOKIE_SECURE = True
+
+# CSRF_COOKIE_SAMESITE: CSRF cookie SameSite attribute
+# SECURITY: Prevents CSRF attacks by restricting when cookies are sent cross-site
+# 'Lax': Cookies sent for same-site requests and top-level navigations
+# 'Strict': Cookies only sent for same-site requests (more secure, may break some flows)
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# SESSION_COOKIE_SAMESITE: Session cookie SameSite attribute
+# SECURITY: Prevents session fixation and CSRF attacks
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# CSRF_TRUSTED_ORIGINS: Origins that are allowed to make cross-site requests
+# SECURITY: Allows legitimate cross-origin requests while blocking CSRF attacks
+# TODO: Update with your actual domain in production
 CSRF_TRUSTED_ORIGINS = ['https://*.yourdomain.com']
+
+# Content Security Policy settings (used by CSP middleware)
+# These are defined here but applied via CSPMiddleware
+# CSP_DEFAULT_SRC: Default source list for resources
+# CSP_SCRIPT_SRC: Allowed sources for JavaScript
+# Note: Actual CSP is implemented in middleware.py for more control
 CSP_DEFAULT_SRC = ["'self'"]
 CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]
 
@@ -51,12 +101,35 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # SecurityMiddleware: Adds security-related headers (HSTS, etc.)
+    # SECURITY: First line of defense for security headers
     'django.middleware.security.SecurityMiddleware',
+    
+    # SessionMiddleware: Manages user sessions
     'django.contrib.sessions.middleware.SessionMiddleware',
+    
+    # CommonMiddleware: Various utilities (APPEND_SLASH, etc.)
     'django.middleware.common.CommonMiddleware',
+    
+    # CsrfViewMiddleware: CSRF protection for POST requests
+    # SECURITY: Prevents Cross-Site Request Forgery attacks
+    # Automatically validates CSRF tokens on all POST requests
     'django.middleware.csrf.CsrfViewMiddleware',
+    
+    # CSPMiddleware: Content Security Policy headers
+    # SECURITY: Prevents XSS attacks by controlling resource loading
+    # Custom middleware - see middleware.py for implementation
+    'LibraryProject.middleware.CSPMiddleware',
+    
+    # AuthenticationMiddleware: Associates users with requests
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    
+    # MessageMiddleware: Handles temporary messages (alerts, etc.)
     'django.contrib.messages.middleware.MessageMiddleware',
+    
+    # XFrameOptionsMiddleware: Clickjacking protection
+    # SECURITY: Prevents page from being embedded in iframes
+    # Note: Also handled by CSP 'frame-ancestors' directive
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
