@@ -14,7 +14,8 @@ from django.views.generic import View
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import user_passes_test
 from .models import CustomUser
-from .forms import BookForm, ExampleForm
+from .forms import BookForm
+from .forms import ExampleForm
 
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.backends import BaseBackend
