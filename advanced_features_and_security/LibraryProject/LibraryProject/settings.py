@@ -55,6 +55,13 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Note: Only works if your server is behind a reverse proxy (nginx, Apache)
 SECURE_SSL_REDIRECT = True
 
+# SECURE_PROXY_SSL_HEADER: Trust the X-Forwarded-Proto header from reverse proxy
+# SECURITY: When Django is behind a reverse proxy (nginx, Apache, etc.), this setting
+# tells Django to trust the HTTP_X_FORWARDED_PROTO header to determine if the request
+# was made over HTTPS. This is essential for proper HTTPS detection behind proxies.
+# Format: (header_name, expected_value)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # SECURE_HSTS_SECONDS: HTTP Strict Transport Security (HSTS) duration in seconds
 # SECURITY: Instructs browsers to only access the site via HTTPS for the specified time
 # 31536000 = 1 year (365 days * 24 hours * 60 minutes * 60 seconds)
