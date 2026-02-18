@@ -26,6 +26,21 @@ class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = '__all__'
+    
+    def validate_publication_year(self, value):
+        if value < 1900:
+            raise serializers.ValidationError("Publication year must be greater than 1900")
+        return value
+    
+    def validate_title(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Title must be at least 3 characters long")
+        return value
+    
+    def validate_author(self, value):
+        if value is None:
+            raise serializers.ValidationError("Author is required")
+        return value
 
 class AuthorSerializer(serializers.ModelSerializer):
     """
@@ -86,3 +101,8 @@ class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
         fields = ['id', 'name', 'books']
+    
+    def validate_name(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Name must be at least 3 characters long")
+        return value
