@@ -8,10 +8,11 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.serializers import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter as DRFSearchFilter
 from rest_framework.filters import OrderingFilter as DRFOrderingFilter
 
-# Alias OrderingFilter as filters.OrderingFilter for consistency
+# Alias SearchFilter and OrderingFilter as filters.SearchFilter and filters.OrderingFilter for consistency
+filters.SearchFilter = DRFSearchFilter
 filters.OrderingFilter = DRFOrderingFilter
 
 # Create your views here.
@@ -122,7 +123,7 @@ class ListView(generics.ListAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     
     # Filter backends: enables filtering, searching, and ordering
-    filter_backends = [DjangoFilterBackend, SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
     # Advanced filtering using FilterSet (defined inline above)
     filterset_class = BookFilter
