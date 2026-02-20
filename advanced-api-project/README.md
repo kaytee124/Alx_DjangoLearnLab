@@ -160,11 +160,10 @@ advanced-api-project/
 ├── api/
 │   ├── models.py          # Author and Book models
 │   ├── serializers.py     # BookSerializer and AuthorSerializer
-│   ├── views.py           # API views with filtering, searching, ordering
-│   ├── filters.py         # BookFilter FilterSet for advanced filtering
+│   ├── views.py           # API views
 │   └── urls.py            # URL routing
-├── advanced_api_project/
-│   └── settings.py        # Django settings with REST_FRAMEWORK config
+├── advanced-api-project/
+│   └── settings.py        # Django settings
 ├── manage.py              # Django management script
 └── README.md              # This file
 ```
@@ -206,7 +205,7 @@ The API uses Django REST Framework's generic class-based views to handle differe
 - **Serializer:** `BookSerializer` - Formats book data for JSON response
 - **Permissions:** `IsAuthenticatedOrReadOnly` - Allows GET without authentication, requires auth for writes
 - **Filter Backends:** `DjangoFilterBackend`, `SearchFilter`, `OrderingFilter`
-- **FilterSet:** `BookFilter` - Advanced filtering configuration
+- **FilterSet:** `BookFilter` - Advanced filtering configuration (defined inline in views.py)
 - **Search Fields:** `['title', 'author__name']` - Text search across these fields
 - **Ordering Fields:** `['title', 'publication_year', 'author__name', 'id']` - Sortable fields
 
@@ -229,7 +228,7 @@ See the [Filtering, Searching, and Ordering](#filtering-searching-and-ordering) 
 
 ---
 
-### Book Detail View (`DetailView`)
+### Book Detail View (`book_detail`)
 
 **View Type:** `RetrieveAPIView`  
 **Purpose:** Provides read-only access to retrieve a single book
@@ -237,7 +236,7 @@ See the [Filtering, Searching, and Ordering](#filtering-searching-and-ordering) 
 **Configuration:**
 - **Queryset:** `Book.objects.all()` - Filtered by primary key from URL
 - **Serializer:** `BookSerializer` - Formats single book data for JSON response
-- **Permissions:** `IsAuthenticatedOrReadOnly` - Allows GET without authentication, requires auth for writes
+- **Permissions:** `ReadOnly` - Allows GET without authentication, blocks write operations
 
 **Intended Operation:**
 - Handles GET requests with book ID in URL
@@ -250,7 +249,7 @@ See the [Filtering, Searching, and Ordering](#filtering-searching-and-ordering) 
 
 ---
 
-### Create Book View (`CreateView`)
+### Create Book View (`create_book`)
 
 **View Type:** `CreateAPIView`  
 **Purpose:** Provides authenticated access to create new books
@@ -290,7 +289,7 @@ See the [Filtering, Searching, and Ordering](#filtering-searching-and-ordering) 
 
 ---
 
-### Update Book View (`UpdateView`)
+### Update Book View (`update_book`)
 
 **View Type:** `UpdateAPIView`  
 **Purpose:** Provides authenticated access to update existing books
@@ -330,7 +329,7 @@ See the [Filtering, Searching, and Ordering](#filtering-searching-and-ordering) 
 
 ---
 
-### Delete Book View (`DeleteView`)
+### Delete Book View (`delete_book`)
 
 **View Type:** `DestroyAPIView`  
 **Purpose:** Provides authenticated access to delete books
@@ -380,7 +379,7 @@ The views use Django REST Framework's hook system to extend default behavior:
 
 ### Permission Classes
 
-- **`IsAuthenticatedOrReadOnly`:** Allows GET requests without authentication, requires authentication for write operations
+- **`ReadOnly`:** Allows GET requests without authentication, blocks all write operations
 - **`IsAuthenticated`:** Requires user to be logged in for any operation
 
 ### Authentication Classes
@@ -396,14 +395,14 @@ The Book List API (`GET /api/books/`) supports advanced query capabilities to he
 
 ### Implementation Overview
 
-The filtering, searching, and ordering functionality is implemented in the `ListView` class:
+The filtering, searching, and ordering functionality is implemented in the `ListView` class in `api/views.py`:
 
 1. **Filter Backends:** Three filter backends are configured:
    - `DjangoFilterBackend` - For field-based filtering
    - `SearchFilter` - For text search across multiple fields
    - `OrderingFilter` - For sorting results
 
-2. **FilterSet Class:** A custom `BookFilter` class (defined in `api/filters.py`) provides advanced filtering options with multiple lookup expressions.
+2. **FilterSet Class:** A custom `BookFilter` class (defined inline in `views.py`) provides advanced filtering options with multiple lookup expressions.
 
 3. **Search Fields:** Text search is enabled on `title` and `author__name` fields.
 
@@ -418,11 +417,13 @@ Filtering allows you to narrow down results based on specific field values. The 
 | Parameter | Type | Description | Example |
 |-----------|------|-------------|---------|
 | `title` | string | Exact match on book title (case-insensitive) | `?title=Harry Potter` |
+| `title__icontains` | string | Book title containing text (case-insensitive) | `?title__icontains=potter` |
 | `publication_year` | integer | Exact match on publication year | `?publication_year=1997` |
 | `publication_year__gte` | integer | Books published in or after this year | `?publication_year__gte=2000` |
 | `publication_year__lte` | integer | Books published in or before this year | `?publication_year__lte=1999` |
 | `author` | integer | Filter by author ID (exact match) | `?author=1` |
-| `author__name` | string | Filter by author name (case-insensitive partial match) | `?author__name=Rowling` |
+| `author__name` | string | Filter by author name containing text (case-insensitive) | `?author__name=Rowling` |
+| `author__name__iexact` | string | Exact match on author name (case-insensitive) | `?author__name__iexact=J.K. Rowling` |
 
 #### Filtering Examples
 
@@ -444,6 +445,11 @@ GET /api/books/?publication_year__gte=2000
 **Filter books published before a certain year:**
 ```bash
 GET /api/books/?publication_year__lte=1999
+```
+
+**Filter by title containing text:**
+```bash
+GET /api/books/?title__icontains=potter
 ```
 
 **Combine multiple filters:**
@@ -554,16 +560,18 @@ This request will:
 
 #### FilterSet Configuration
 
-The `BookFilter` class in `api/filters.py` defines the filtering capabilities:
+The `BookFilter` class in `api/views.py` defines the filtering capabilities:
 
 ```python
-class BookFilter(django_filters.FilterSet):
-    title = django_filters.CharFilter(lookup_expr='iexact')
-    publication_year = django_filters.NumberFilter(lookup_expr='exact')
-    publication_year__gte = django_filters.NumberFilter(lookup_expr='gte')
-    publication_year__lte = django_filters.NumberFilter(lookup_expr='lte')
-    author = django_filters.NumberFilter(lookup_expr='exact')
-    author__name = django_filters.CharFilter(lookup_expr='icontains')
+class BookFilter(filters.FilterSet):
+    title = filters.CharFilter(lookup_expr='iexact')
+    title__icontains = filters.CharFilter(field_name='title', lookup_expr='icontains')
+    publication_year = filters.NumberFilter(lookup_expr='exact')
+    publication_year__gte = filters.NumberFilter(field_name='publication_year', lookup_expr='gte')
+    publication_year__lte = filters.NumberFilter(field_name='publication_year', lookup_expr='lte')
+    author = filters.NumberFilter(lookup_expr='exact')
+    author__name = filters.CharFilter(field_name='author__name', lookup_expr='icontains')
+    author__name__iexact = filters.CharFilter(field_name='author__name', lookup_expr='iexact')
 ```
 
 #### View Configuration
@@ -623,7 +631,7 @@ All endpoints are configured in `api/views.py` and `api/urls.py`:
 - `DELETE /api/books/<id>/delete/` - Delete book (authenticated)
 
 **Query Parameters for List Endpoint:**
-- Filtering: `title`, `publication_year`, `publication_year__gte`, `publication_year__lte`, `author`, `author__name`
+- Filtering: `title`, `title__icontains`, `publication_year`, `publication_year__gte`, `publication_year__lte`, `author`, `author__name`, `author__name__iexact`
 - Searching: `search`
 - Ordering: `ordering` (use `-` prefix for descending order)
 
@@ -632,3 +640,5 @@ All endpoints are configured in `api/views.py` and `api/urls.py`:
 - The Author-Book relationship uses CASCADE deletion, so deleting an author will delete all associated books
 - The nested `books` field in AuthorSerializer is read-only to maintain data integrity
 - Book creation should be done through the Book endpoint, not through the Author endpoint
+- All filtering, searching, and ordering logic is implemented inline in `api/views.py` (no separate filters file)
+- The `BookFilter` FilterSet class is defined directly in `views.py` for simplicity and maintainability

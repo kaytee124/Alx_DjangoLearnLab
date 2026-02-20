@@ -7,10 +7,49 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.serializers import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .filters import BookFilter
 
 # Create your views here.
+
+# FilterSet class defined inline in views.py (not in separate file)
+class BookFilter(filters.FilterSet):
+    """
+    Book FilterSet
+    
+    Defines filtering options for the Book model. This FilterSet allows users
+    to filter books by various attributes using different lookup expressions.
+    
+    Filter Fields:
+        - title: Filter by book title (case-insensitive exact match)
+        - title__icontains: Filter by book title (case-insensitive partial match)
+        - publication_year: Filter by exact publication year
+        - publication_year__gte: Filter books published in or after this year
+        - publication_year__lte: Filter books published in or before this year
+        - author: Filter by author ID (exact match)
+        - author__name: Filter by author name (case-insensitive partial match)
+        - author__name__iexact: Filter by author name (case-insensitive exact match)
+    
+    Usage Examples:
+        - /api/books/?title=Harry Potter
+        - /api/books/?publication_year=1997
+        - /api/books/?publication_year__gte=2000
+        - /api/books/?author__name=Rowling
+        - /api/books/?title__icontains=potter&publication_year__gte=1997
+    """
+    title = filters.CharFilter(lookup_expr='iexact', help_text="Filter by exact book title (case-insensitive)")
+    title__icontains = filters.CharFilter(field_name='title', lookup_expr='icontains', help_text="Filter by book title containing text (case-insensitive)")
+    publication_year = filters.NumberFilter(lookup_expr='exact', help_text="Filter by exact publication year")
+    publication_year__gte = filters.NumberFilter(field_name='publication_year', lookup_expr='gte', help_text="Filter books published in or after this year")
+    publication_year__lte = filters.NumberFilter(field_name='publication_year', lookup_expr='lte', help_text="Filter books published in or before this year")
+    author = filters.NumberFilter(lookup_expr='exact', help_text="Filter by author ID")
+    author__name = filters.CharFilter(field_name='author__name', lookup_expr='icontains', help_text="Filter by author name containing text (case-insensitive)")
+    author__name__iexact = filters.CharFilter(field_name='author__name', lookup_expr='iexact', help_text="Filter by exact author name (case-insensitive)")
+    
+    class Meta:
+        model = Book
+        fields = ['title', 'publication_year', 'author']
+
 
 class ListView(generics.ListAPIView):
     """
@@ -36,11 +75,13 @@ class ListView(generics.ListAPIView):
     Filtering Capabilities:
         Uses DjangoFilterBackend with BookFilter for advanced filtering:
         - title: Exact match on book title (case-insensitive)
+        - title__icontains: Partial match on book title (case-insensitive)
         - publication_year: Exact match on publication year
         - publication_year__gte: Books published in or after this year
         - publication_year__lte: Books published in or before this year
         - author: Filter by author ID (exact match)
         - author__name: Filter by author name (case-insensitive partial match)
+        - author__name__iexact: Filter by exact author name (case-insensitive)
         
         Example: /api/books/?publication_year=1997&author__name=Rowling
     
@@ -79,7 +120,7 @@ class ListView(generics.ListAPIView):
     # Filter backends: enables filtering, searching, and ordering
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     
-    # Advanced filtering using FilterSet
+    # Advanced filtering using FilterSet (defined inline above)
     filterset_class = BookFilter
     
     # Search fields: performs case-insensitive text search
