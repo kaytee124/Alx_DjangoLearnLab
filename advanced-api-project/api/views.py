@@ -9,7 +9,7 @@ from rest_framework.serializers import ValidationError
 
 # Create your views here.
 
-class book_list(generics.ListAPIView):
+class ListView(generics.ListAPIView):
     """
     Book List View
     
@@ -38,7 +38,7 @@ class book_list(generics.ListAPIView):
     serializer_class = BookSerializer
     permission_classes = [ReadOnly]
 
-class book_detail(generics.RetrieveAPIView):
+class DetailView(generics.RetrieveAPIView):
     """
     Book Detail View
     
@@ -67,7 +67,7 @@ class book_detail(generics.RetrieveAPIView):
     serializer_class = BookSerializer
     permission_classes = [ReadOnly]
 
-class create_book(generics.CreateAPIView):
+class CreateView(generics.CreateAPIView):
     """
     Create Book View
     
@@ -140,7 +140,7 @@ class create_book(generics.CreateAPIView):
         return super().create(request, *args, **kwargs)
 
 
-class update_book(generics.UpdateAPIView):
+class UpdateView(generics.UpdateAPIView):
     """
     Update Book View
     
@@ -214,7 +214,7 @@ class update_book(generics.UpdateAPIView):
         return super().update(request, *args, **kwargs)
 
 
-class delete_book(generics.DestroyAPIView):
+class DeleteView(generics.DestroyAPIView):
     """
     Delete Book View
     
