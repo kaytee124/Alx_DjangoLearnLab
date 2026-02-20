@@ -4,7 +4,7 @@ from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, ReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.serializers import ValidationError
 
 # Create your views here.
@@ -36,7 +36,7 @@ class ListView(generics.ListAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [ReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class DetailView(generics.RetrieveAPIView):
     """
@@ -65,7 +65,7 @@ class DetailView(generics.RetrieveAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [ReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class CreateView(generics.CreateAPIView):
     """
