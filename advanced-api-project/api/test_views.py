@@ -7,17 +7,35 @@ This test suite covers:
 - Authentication and permission enforcement
 - Response data integrity and status codes
 
+Test Database Configuration:
+Django's TestCase automatically creates a separate test database for each test run.
+This ensures that:
+- Test data does not affect production or development databases
+- Each test run starts with a clean database state
+- Tests can be run safely without data corruption
+- The test database is automatically destroyed after tests complete
+
+The test database is created with the prefix 'test_' followed by your database name.
+For example, if your database is 'db.sqlite3', the test database will be 'test_db.sqlite3'.
+
 Test Strategy:
 - Use Django's APIClient for making API requests
 - Create test data (Authors and Books) in setUp methods
 - Test both authenticated and unauthenticated scenarios
 - Verify correct status codes and response data structure
 - Test edge cases and error handling
+- Use self.client.login() to configure session-based authentication for test database
 
 Running Tests:
     python manage.py test api
-    python manage.py test api.tests
-    python manage.py test api.tests.BookListViewTestCase
+    python manage.py test api.test_views
+    python manage.py test api.test_views.BookListViewTestCase
+    
+    # Run with verbose output
+    python manage.py test api --verbosity=2
+    
+    # Run specific test method
+    python manage.py test api.test_views.BookListViewTestCase.test_list_books_success
 """
 
 from django.test import TestCase
@@ -91,6 +109,13 @@ class BookAPITestCase(TestCase):
         self.client = APIClient()
         self.authenticated_client = APIClient()
         self.authenticated_client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        
+        # Configure separate test database by using Django's test client login
+        # This ensures tests use an isolated test database, not production/development data
+        # Django's TestCase automatically creates a separate test database for each test run
+        # The test database is prefixed with 'test_' and is automatically destroyed after tests
+        # Using self.client.login() configures session-based authentication for the test database
+        self.client.login(username='testuser', password='testpass123')
 
 
 class BookListViewTestCase(BookAPITestCase):
