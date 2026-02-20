@@ -4,7 +4,7 @@ from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.serializers import ValidationError
 
 # Create your views here.
