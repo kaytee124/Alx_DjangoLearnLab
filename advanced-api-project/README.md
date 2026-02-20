@@ -191,14 +191,202 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## View Configurations
+
+The API uses Django REST Framework's generic class-based views to handle different HTTP operations. Each view is configured with specific permissions, authentication, and custom hooks to extend default behavior.
+
+### Book List View (`book_list`)
+
+**View Type:** `ListAPIView`  
+**Purpose:** Provides read-only access to list all books
+
+**Configuration:**
+- **Queryset:** `Book.objects.all()` - Returns all books from database
+- **Serializer:** `BookSerializer` - Formats book data for JSON response
+- **Permissions:** `ReadOnly` - Allows GET without authentication, blocks write operations
+
+**Intended Operation:**
+- Handles GET requests to retrieve a list of all books
+- Returns JSON array of book objects
+- Public access (no authentication required)
+- Read-only (no POST, PUT, PATCH, DELETE)
+
+**URL:** `/api/books/`  
+**HTTP Methods:** GET
+
+---
+
+### Book Detail View (`book_detail`)
+
+**View Type:** `RetrieveAPIView`  
+**Purpose:** Provides read-only access to retrieve a single book
+
+**Configuration:**
+- **Queryset:** `Book.objects.all()` - Filtered by primary key from URL
+- **Serializer:** `BookSerializer` - Formats single book data for JSON response
+- **Permissions:** `ReadOnly` - Allows GET without authentication, blocks write operations
+
+**Intended Operation:**
+- Handles GET requests with book ID in URL
+- Returns single book object as JSON
+- Public access (no authentication required)
+- Read-only (no POST, PUT, PATCH, DELETE)
+
+**URL:** `/api/books/<int:pk>/`  
+**HTTP Methods:** GET
+
+---
+
+### Create Book View (`create_book`)
+
+**View Type:** `CreateAPIView`  
+**Purpose:** Provides authenticated access to create new books
+
+**Configuration:**
+- **Queryset:** `Book.objects.all()` - Used for validation
+- **Serializer:** `BookSerializer` - Validates and saves incoming data
+- **Authentication:** `TokenAuthentication` - Requires valid token in request headers
+- **Permissions:** `IsAuthenticated` - User must be logged in
+
+**Intended Operation:**
+- Handles POST requests with book data in JSON format
+- Validates data using BookSerializer
+- Creates new book instance in database
+- Returns created book with HTTP 201 status
+
+**Custom Hooks and Settings:**
+
+1. **`perform_create()` Hook:**
+   - Extends default behavior by automatically setting the book's author
+   - Sets `author` field to the authenticated user (`self.request.user`)
+   - Called after validation but before saving to database
+   - Ensures books are always associated with the user who created them
+
+2. **`create()` Method Override:**
+   - Adds custom validation at view level
+   - Checks if 'title' field is present in request data
+   - Raises `ValidationError` if title is missing
+   - Runs before serializer validation and `perform_create()`
+
+**Authentication Requirements:**
+- Request header: `Authorization: Token <token_value>`
+- Token must be valid and associated with authenticated user
+
+**URL:** `/api/books/create/`  
+**HTTP Methods:** POST
+
+---
+
+### Update Book View (`update_book`)
+
+**View Type:** `UpdateAPIView`  
+**Purpose:** Provides authenticated access to update existing books
+
+**Configuration:**
+- **Queryset:** `Book.objects.all()` - Filtered by primary key from URL
+- **Serializer:** `BookSerializer` - Validates and updates data
+- **Authentication:** `TokenAuthentication` - Requires valid token in request headers
+- **Permissions:** `IsAuthenticated` - User must be logged in
+
+**Intended Operation:**
+- Handles PUT (full update) and PATCH (partial update) requests
+- Updates existing book identified by primary key
+- Validates data using BookSerializer
+- Returns updated book with HTTP 200 status
+
+**Custom Hooks and Settings:**
+
+1. **`perform_update()` Hook:**
+   - Extends default behavior by automatically updating the book's author
+   - Sets `author` field to the authenticated user (`self.request.user`)
+   - Called after validation but before saving to database
+   - Ensures books are always associated with the user who last updated them
+
+2. **`update()` Method Override:**
+   - Adds custom validation at view level
+   - Checks if 'title' field is present in request data
+   - Raises `ValidationError` if title is missing
+   - Runs before serializer validation and `perform_update()`
+
+**Authentication Requirements:**
+- Request header: `Authorization: Token <token_value>`
+- Token must be valid and associated with authenticated user
+
+**URL:** `/api/books/<int:pk>/update/`  
+**HTTP Methods:** PUT, PATCH
+
+---
+
+### Delete Book View (`delete_book`)
+
+**View Type:** `DestroyAPIView`  
+**Purpose:** Provides authenticated access to delete books
+
+**Configuration:**
+- **Queryset:** `Book.objects.all()` - Filtered by primary key from URL
+- **Serializer:** `BookSerializer` - Used for response formatting if needed
+- **Permissions:** `IsAuthenticated` - User must be logged in
+- **Authentication:** Uses default authentication (from DRF settings)
+
+**Intended Operation:**
+- Handles DELETE requests for book identified by primary key
+- Permanently removes book instance from database
+- Returns HTTP 204 No Content on success
+- Returns HTTP 404 if book doesn't exist
+
+**Custom Settings:**
+- Only requires authentication (no custom hooks)
+- Uses default authentication method from Django REST Framework settings
+
+**Authentication Requirements:**
+- User must be authenticated via default method
+- For TokenAuthentication: `Authorization: Token <token_value>`
+
+**URL:** `/api/books/<int:pk>/delete/`  
+**HTTP Methods:** DELETE
+
+---
+
+## Custom Hooks and Behavior Extensions
+
+### Understanding Custom Hooks
+
+The views use Django REST Framework's hook system to extend default behavior:
+
+1. **`perform_create()` / `perform_update()`:**
+   - Called after serializer validation but before database save
+   - Allows modification of data before saving
+   - Used to automatically set author field to authenticated user
+   - Can access `self.request` and `self.request.user`
+
+2. **Method Overrides (`create()`, `update()`):**
+   - Override entire request handling flow
+   - Allow custom validation before serializer processing
+   - Must call `super()` to maintain default behavior
+   - Used to add explicit title validation
+
+### Permission Classes
+
+- **`ReadOnly`:** Allows GET requests without authentication, blocks all write operations
+- **`IsAuthenticated`:** Requires user to be logged in for any operation
+
+### Authentication Classes
+
+- **`TokenAuthentication`:** Requires token in `Authorization` header
+  - Format: `Authorization: Token <your-token-here>`
+  - Tokens are generated for authenticated users
+  - Provides stateless authentication
+
 ## API Endpoints
 
-(Note: Endpoints should be configured in `api/views.py` and `api/urls.py`)
+All endpoints are configured in `api/views.py` and `api/urls.py`:
 
-- `/api/authors/` - List and create authors
-- `/api/authors/<id>/` - Retrieve, update, or delete a specific author
-- `/api/books/` - List and create books
-- `/api/books/<id>/` - Retrieve, update, or delete a specific book
+**Book Endpoints:**
+- `GET /api/books/` - List all books (public, read-only)
+- `GET /api/books/<id>/` - Get single book (public, read-only)
+- `POST /api/books/create/` - Create new book (authenticated, requires token)
+- `PUT/PATCH /api/books/<id>/update/` - Update book (authenticated, requires token)
+- `DELETE /api/books/<id>/delete/` - Delete book (authenticated)
 
 ## Notes
 
