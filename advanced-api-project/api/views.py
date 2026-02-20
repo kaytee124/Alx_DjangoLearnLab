@@ -6,6 +6,9 @@ from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.serializers import ValidationError
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+from .filters import BookFilter
 
 # Create your views here.
 
@@ -13,23 +16,58 @@ class ListView(generics.ListAPIView):
     """
     Book List View
     
-    Provides read-only access to list all books in the system.
+    Provides read-only access to list all books in the system with advanced
+    filtering, searching, and ordering capabilities.
     
     Configuration:
         - View Type: ListAPIView (handles GET requests for collections)
         - Queryset: Returns all Book objects from the database
         - Serializer: Uses BookSerializer to format response data
-        - Permissions: ReadOnly - allows GET requests without authentication
+        - Permissions: IsAuthenticatedOrReadOnly - allows GET without authentication,
+          requires authentication for write operations
     
     Intended Operation:
-        - Accepts GET requests to retrieve a list of all books
+        - Accepts GET requests to retrieve a list of books
+        - Supports filtering, searching, and ordering via query parameters
         - Returns a JSON array of book objects
-        - No authentication required (public read access)
+        - Public read access (no authentication required for GET)
         - Does not support POST, PUT, PATCH, or DELETE operations
     
+    Filtering Capabilities:
+        Uses DjangoFilterBackend with BookFilter for advanced filtering:
+        - title: Exact match on book title (case-insensitive)
+        - publication_year: Exact match on publication year
+        - publication_year__gte: Books published in or after this year
+        - publication_year__lte: Books published in or before this year
+        - author: Filter by author ID (exact match)
+        - author__name: Filter by author name (case-insensitive partial match)
+        
+        Example: /api/books/?publication_year=1997&author__name=Rowling
+    
+    Search Functionality:
+        Uses SearchFilter to perform text searches across multiple fields:
+        - title: Searches in book titles
+        - author__name: Searches in author names
+        
+        Example: /api/books/?search=Harry
+    
+    Ordering Capabilities:
+        Uses OrderingFilter to sort results by any field:
+        - title: Sort by book title (ascending or descending)
+        - publication_year: Sort by publication year
+        - author__name: Sort by author name
+        - id: Sort by book ID
+        
+        Use '-' prefix for descending order.
+        Example: /api/books/?ordering=-publication_year,title
+    
     Custom Settings:
-        - permission_classes: Set to [ReadOnly] to allow unauthenticated read access
-          while preventing write operations
+        - permission_classes: IsAuthenticatedOrReadOnly for flexible access control
+        - filter_backends: DjangoFilterBackend, SearchFilter, OrderingFilter
+        - filterset_class: BookFilter for advanced filtering options
+        - search_fields: ['title', 'author__name'] for text search
+        - ordering_fields: ['title', 'publication_year', 'author__name', 'id']
+        - ordering: Default ordering (by id ascending)
     
     URL Pattern: /api/books/
     HTTP Methods: GET
@@ -37,6 +75,21 @@ class ListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    # Filter backends: enables filtering, searching, and ordering
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    
+    # Advanced filtering using FilterSet
+    filterset_class = BookFilter
+    
+    # Search fields: performs case-insensitive text search
+    search_fields = ['title', 'author__name']
+    
+    # Ordering fields: allows sorting by these fields
+    ordering_fields = ['title', 'publication_year', 'author__name', 'id']
+    
+    # Default ordering (if no ordering parameter is provided)
+    ordering = ['id']
 
 class DetailView(generics.RetrieveAPIView):
     """
@@ -48,17 +101,22 @@ class DetailView(generics.RetrieveAPIView):
         - View Type: RetrieveAPIView (handles GET requests for single objects)
         - Queryset: Returns all Book objects (filtered by pk in URL)
         - Serializer: Uses BookSerializer to format response data
-        - Permissions: ReadOnly - allows GET requests without authentication
+        - Permissions: IsAuthenticatedOrReadOnly - allows GET without authentication,
+          requires authentication for write operations
     
     Intended Operation:
         - Accepts GET requests with a book ID in the URL
         - Returns a single book object as JSON
-        - No authentication required (public read access)
+        - Public read access (no authentication required for GET)
         - Does not support POST, PUT, PATCH, or DELETE operations
     
+    Note:
+        Filtering, searching, and ordering are not applicable to this view
+        since it retrieves a single object by primary key. These features
+        are only available on list views.
+    
     Custom Settings:
-        - permission_classes: Set to [ReadOnly] to allow unauthenticated read access
-          while preventing write operations
+        - permission_classes: IsAuthenticatedOrReadOnly for flexible access control
     
     URL Pattern: /api/books/<int:pk>/
     HTTP Methods: GET

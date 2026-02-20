@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',  # Required for DjangoFilterBackend
     'api',
 ]
 
@@ -117,3 +118,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Django REST Framework Configuration
+REST_FRAMEWORK = {
+    # Default filter backends for all views
+    # These can be overridden in individual views
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    # Pagination settings (optional, can be configured per view)
+    'PAGE_SIZE': 100,
+}

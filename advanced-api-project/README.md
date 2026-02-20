@@ -160,10 +160,11 @@ advanced-api-project/
 ├── api/
 │   ├── models.py          # Author and Book models
 │   ├── serializers.py     # BookSerializer and AuthorSerializer
-│   ├── views.py           # API views
+│   ├── views.py           # API views with filtering, searching, ordering
+│   ├── filters.py         # BookFilter FilterSet for advanced filtering
 │   └── urls.py            # URL routing
-├── advanced-api-project/
-│   └── settings.py        # Django settings
+├── advanced_api_project/
+│   └── settings.py        # Django settings with REST_FRAMEWORK config
 ├── manage.py              # Django management script
 └── README.md              # This file
 ```
@@ -172,7 +173,7 @@ advanced-api-project/
 
 1. Install dependencies:
 ```bash
-pip install django djangorestframework
+pip install django djangorestframework django-filter
 ```
 
 2. Run migrations:
@@ -195,28 +196,40 @@ python manage.py runserver
 
 The API uses Django REST Framework's generic class-based views to handle different HTTP operations. Each view is configured with specific permissions, authentication, and custom hooks to extend default behavior.
 
-### Book List View (`book_list`)
+### Book List View (`ListView`)
 
 **View Type:** `ListAPIView`  
-**Purpose:** Provides read-only access to list all books
+**Purpose:** Provides read-only access to list all books with advanced filtering, searching, and ordering
 
 **Configuration:**
 - **Queryset:** `Book.objects.all()` - Returns all books from database
 - **Serializer:** `BookSerializer` - Formats book data for JSON response
-- **Permissions:** `ReadOnly` - Allows GET without authentication, blocks write operations
+- **Permissions:** `IsAuthenticatedOrReadOnly` - Allows GET without authentication, requires auth for writes
+- **Filter Backends:** `DjangoFilterBackend`, `SearchFilter`, `OrderingFilter`
+- **FilterSet:** `BookFilter` - Advanced filtering configuration
+- **Search Fields:** `['title', 'author__name']` - Text search across these fields
+- **Ordering Fields:** `['title', 'publication_year', 'author__name', 'id']` - Sortable fields
 
 **Intended Operation:**
-- Handles GET requests to retrieve a list of all books
+- Handles GET requests to retrieve a list of books
+- Supports filtering, searching, and ordering via query parameters
 - Returns JSON array of book objects
-- Public access (no authentication required)
+- Public read access (no authentication required for GET)
 - Read-only (no POST, PUT, PATCH, DELETE)
+
+**Advanced Features:**
+- **Filtering:** Filter by title, publication year, author ID, or author name
+- **Searching:** Text search across book titles and author names
+- **Ordering:** Sort results by any configured field (ascending or descending)
 
 **URL:** `/api/books/`  
 **HTTP Methods:** GET
 
+See the [Filtering, Searching, and Ordering](#filtering-searching-and-ordering) section for detailed usage examples.
+
 ---
 
-### Book Detail View (`book_detail`)
+### Book Detail View (`DetailView`)
 
 **View Type:** `RetrieveAPIView`  
 **Purpose:** Provides read-only access to retrieve a single book
@@ -224,7 +237,7 @@ The API uses Django REST Framework's generic class-based views to handle differe
 **Configuration:**
 - **Queryset:** `Book.objects.all()` - Filtered by primary key from URL
 - **Serializer:** `BookSerializer` - Formats single book data for JSON response
-- **Permissions:** `ReadOnly` - Allows GET without authentication, blocks write operations
+- **Permissions:** `IsAuthenticatedOrReadOnly` - Allows GET without authentication, requires auth for writes
 
 **Intended Operation:**
 - Handles GET requests with book ID in URL
@@ -237,7 +250,7 @@ The API uses Django REST Framework's generic class-based views to handle differe
 
 ---
 
-### Create Book View (`create_book`)
+### Create Book View (`CreateView`)
 
 **View Type:** `CreateAPIView`  
 **Purpose:** Provides authenticated access to create new books
@@ -277,7 +290,7 @@ The API uses Django REST Framework's generic class-based views to handle differe
 
 ---
 
-### Update Book View (`update_book`)
+### Update Book View (`UpdateView`)
 
 **View Type:** `UpdateAPIView`  
 **Purpose:** Provides authenticated access to update existing books
@@ -317,7 +330,7 @@ The API uses Django REST Framework's generic class-based views to handle differe
 
 ---
 
-### Delete Book View (`delete_book`)
+### Delete Book View (`DeleteView`)
 
 **View Type:** `DestroyAPIView`  
 **Purpose:** Provides authenticated access to delete books
@@ -367,7 +380,7 @@ The views use Django REST Framework's hook system to extend default behavior:
 
 ### Permission Classes
 
-- **`ReadOnly`:** Allows GET requests without authentication, blocks all write operations
+- **`IsAuthenticatedOrReadOnly`:** Allows GET requests without authentication, requires authentication for write operations
 - **`IsAuthenticated`:** Requires user to be logged in for any operation
 
 ### Authentication Classes
@@ -377,16 +390,242 @@ The views use Django REST Framework's hook system to extend default behavior:
   - Tokens are generated for authenticated users
   - Provides stateless authentication
 
+## Filtering, Searching, and Ordering
+
+The Book List API (`GET /api/books/`) supports advanced query capabilities to help users efficiently access and manipulate data. These features are implemented using Django REST Framework's filter backends and django-filters.
+
+### Implementation Overview
+
+The filtering, searching, and ordering functionality is implemented in the `ListView` class:
+
+1. **Filter Backends:** Three filter backends are configured:
+   - `DjangoFilterBackend` - For field-based filtering
+   - `SearchFilter` - For text search across multiple fields
+   - `OrderingFilter` - For sorting results
+
+2. **FilterSet Class:** A custom `BookFilter` class (defined in `api/filters.py`) provides advanced filtering options with multiple lookup expressions.
+
+3. **Search Fields:** Text search is enabled on `title` and `author__name` fields.
+
+4. **Ordering Fields:** Results can be sorted by `title`, `publication_year`, `author__name`, or `id`.
+
+### Filtering
+
+Filtering allows you to narrow down results based on specific field values. The API supports filtering by:
+
+#### Available Filter Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `title` | string | Exact match on book title (case-insensitive) | `?title=Harry Potter` |
+| `publication_year` | integer | Exact match on publication year | `?publication_year=1997` |
+| `publication_year__gte` | integer | Books published in or after this year | `?publication_year__gte=2000` |
+| `publication_year__lte` | integer | Books published in or before this year | `?publication_year__lte=1999` |
+| `author` | integer | Filter by author ID (exact match) | `?author=1` |
+| `author__name` | string | Filter by author name (case-insensitive partial match) | `?author__name=Rowling` |
+
+#### Filtering Examples
+
+**Filter by exact publication year:**
+```bash
+GET /api/books/?publication_year=1997
+```
+
+**Filter by author name (partial match):**
+```bash
+GET /api/books/?author__name=Rowling
+```
+
+**Filter books published after a certain year:**
+```bash
+GET /api/books/?publication_year__gte=2000
+```
+
+**Filter books published before a certain year:**
+```bash
+GET /api/books/?publication_year__lte=1999
+```
+
+**Combine multiple filters:**
+```bash
+GET /api/books/?publication_year=1997&author__name=Rowling
+```
+
+**Filter by author ID:**
+```bash
+GET /api/books/?author=1
+```
+
+### Searching
+
+Searching performs case-insensitive text search across multiple fields simultaneously. The search looks for the search term in:
+
+- **Book titles** (`title` field)
+- **Author names** (`author__name` field)
+
+#### Search Parameter
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `search` | string | Text to search for in title and author name | `?search=Harry` |
+
+#### Search Examples
+
+**Search for books with "Harry" in title or author name:**
+```bash
+GET /api/books/?search=Harry
+```
+
+**Search for books by author name:**
+```bash
+GET /api/books/?search=Rowling
+```
+
+**Combine search with filtering:**
+```bash
+GET /api/books/?search=Potter&publication_year__gte=1997
+```
+
+**Note:** The search is case-insensitive and performs a "contains" match, so searching for "harry" will find "Harry Potter" books.
+
+### Ordering
+
+Ordering allows you to sort the results by one or more fields in ascending or descending order.
+
+#### Ordering Parameter
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `ordering` | string | Comma-separated list of fields to sort by. Use `-` prefix for descending order | `?ordering=-publication_year` |
+
+#### Available Ordering Fields
+
+- `title` - Sort by book title
+- `publication_year` - Sort by publication year
+- `author__name` - Sort by author name
+- `id` - Sort by book ID
+
+#### Ordering Examples
+
+**Sort by publication year (newest first):**
+```bash
+GET /api/books/?ordering=-publication_year
+```
+
+**Sort by publication year (oldest first):**
+```bash
+GET /api/books/?ordering=publication_year
+```
+
+**Sort by title (alphabetical):**
+```bash
+GET /api/books/?ordering=title
+```
+
+**Sort by title (reverse alphabetical):**
+```bash
+GET /api/books/?ordering=-title
+```
+
+**Multiple field sorting (year first, then title):**
+```bash
+GET /api/books/?ordering=-publication_year,title
+```
+
+**Sort by author name:**
+```bash
+GET /api/books/?ordering=author__name
+```
+
+### Combining Filtering, Searching, and Ordering
+
+You can combine all three features in a single request:
+
+```bash
+GET /api/books/?publication_year__gte=1997&search=Potter&ordering=-publication_year,title
+```
+
+This request will:
+1. Filter books published in 1997 or later
+2. Search for "Potter" in titles and author names
+3. Sort by publication year (newest first), then by title (alphabetical)
+
+### Implementation Details
+
+#### FilterSet Configuration
+
+The `BookFilter` class in `api/filters.py` defines the filtering capabilities:
+
+```python
+class BookFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(lookup_expr='iexact')
+    publication_year = django_filters.NumberFilter(lookup_expr='exact')
+    publication_year__gte = django_filters.NumberFilter(lookup_expr='gte')
+    publication_year__lte = django_filters.NumberFilter(lookup_expr='lte')
+    author = django_filters.NumberFilter(lookup_expr='exact')
+    author__name = django_filters.CharFilter(lookup_expr='icontains')
+```
+
+#### View Configuration
+
+The `ListView` class is configured with:
+
+```python
+filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+filterset_class = BookFilter
+search_fields = ['title', 'author__name']
+ordering_fields = ['title', 'publication_year', 'author__name', 'id']
+ordering = ['id']  # Default ordering
+```
+
+### Testing the Features
+
+You can test these features using:
+
+1. **Browser:** Simply append query parameters to the URL
+   ```
+   http://localhost:8000/api/books/?search=Harry&ordering=-publication_year
+   ```
+
+2. **curl:**
+   ```bash
+   curl "http://localhost:8000/api/books/?publication_year=1997&ordering=title"
+   ```
+
+3. **Postman:**
+   - Set request method to GET
+   - Enter URL: `http://localhost:8000/api/books/`
+   - Add query parameters in the Params tab
+
+4. **Python requests:**
+   ```python
+   import requests
+   
+   response = requests.get(
+       'http://localhost:8000/api/books/',
+       params={
+           'publication_year__gte': 2000,
+           'search': 'Potter',
+           'ordering': '-publication_year'
+       }
+   )
+   ```
+
 ## API Endpoints
 
 All endpoints are configured in `api/views.py` and `api/urls.py`:
 
 **Book Endpoints:**
-- `GET /api/books/` - List all books (public, read-only)
+- `GET /api/books/` - List all books with filtering, searching, and ordering (public, read-only)
 - `GET /api/books/<id>/` - Get single book (public, read-only)
 - `POST /api/books/create/` - Create new book (authenticated, requires token)
 - `PUT/PATCH /api/books/<id>/update/` - Update book (authenticated, requires token)
 - `DELETE /api/books/<id>/delete/` - Delete book (authenticated)
+
+**Query Parameters for List Endpoint:**
+- Filtering: `title`, `publication_year`, `publication_year__gte`, `publication_year__lte`, `author`, `author__name`
+- Searching: `search`
+- Ordering: `ordering` (use `-` prefix for descending order)
 
 ## Notes
 
