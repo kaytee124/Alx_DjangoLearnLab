@@ -130,3 +130,16 @@ TEMPLATES_DIR = [
     'DIRS': [BASE_DIR / 'templates'],
    }
 ]
+
+# Redirect after login
+LOGIN_REDIRECT_URL = 'profile'
+
+# Redirect after logout
+LOGOUT_REDIRECT_URL = None
+
+# Login page
+LOGIN_URL = 'login'
+
+# Media settings for profile pictures
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

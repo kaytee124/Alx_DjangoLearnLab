@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<header>
+    <nav>
+        <ul>
+            <li><a href="{% url 'profile' %}">Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="content">
+    <h2>Edit Profile</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update Profile</button>
+    </form>
+</div>
+
+<footer>
+    &copy; 2026 My Blog
+</footer>
+</body>
+</html>

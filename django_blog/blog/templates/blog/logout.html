@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logged Out</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<header>
+    <nav>
+        <ul>
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'register' %}">Register</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="content">
+    <h2>You have been logged out.</h2>
+    <p><a href="{% url 'login' %}">Click here to login again</a></p>
+</div>
+
+<footer>
+    &copy; 2026 My Blog
+</footer>
+</body>
+</html>
