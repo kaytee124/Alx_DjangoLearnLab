@@ -37,18 +37,18 @@ def edit_profile(request):
 
 class ListView(ListView):
     model = Post
-    template_name = 'blog/list.html'
+    template_name = 'blog/post_list.html'
     context_object_name = 'posts'
     ordering = ['-published_date']
 
 class DetailView(DetailView):
     model = Post
-    template_name = 'blog/detail.html'
+    template_name = 'blog/post_detail.html'
     context_object_name = 'post'
 
 class CreateView(LoginRequiredMixin, CreateView):
     model = Post
-    template_name = 'blog/create.html'
+    template_name = 'blog/post_create.html'
     form_class = PostForm
     success_url = reverse_lazy('post_list')
 
@@ -62,7 +62,7 @@ class CreateView(LoginRequiredMixin, CreateView):
 
 class UpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
-    template_name = 'blog/update.html'
+    template_name = 'blog/post_update.html'
     form_class = PostForm
 
     def test_func(self):
@@ -79,7 +79,7 @@ class UpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class DeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    template_name = 'blog/delete.html'
+    template_name = 'blog/post_delete.html'
     success_url = reverse_lazy('post_list')
     context_object_name = 'post'
 
