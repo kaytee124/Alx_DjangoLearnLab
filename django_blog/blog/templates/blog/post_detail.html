@@ -10,8 +10,9 @@
     {% if post.tags.all %}
     <div class="post-tags" style="margin: 15px 0;">
         <strong>Tags:</strong>
+        {% load static %}
         {% for tag in post.tags.all %}
-            <a href="{% url 'posts_by_tag' tag.name %}" style="display: inline-block; background-color: #007bff; color: white; padding: 4px 10px; border-radius: 3px; margin: 2px 5px 2px 0; font-size: 12px; text-decoration: none;">{{ tag.name }}</a>
+            <a href="{% url 'posts_by_tag' tag.name|slugify %}" style="display: inline-block; background-color: #007bff; color: white; padding: 4px 10px; border-radius: 3px; margin: 2px 5px 2px 0; font-size: 12px; text-decoration: none;">{{ tag.name }}</a>
         {% endfor %}
     </div>
     {% endif %}

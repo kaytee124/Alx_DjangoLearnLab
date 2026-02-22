@@ -2191,7 +2191,7 @@ python, django, python           (duplicates automatically removed)
 2. **Click a Tag**:
    - Tags are displayed as blue badges
    - Click any tag to see all posts with that tag
-   - URL format: `/blog/tags/<tag-name>/`
+   - URL format: `/blog/tags/<tag-slug>/` (automatically slugified)
 
 3. **View Filtered Results**:
    - Page shows "Posts tagged with '[tag name]'"
@@ -2200,14 +2200,17 @@ python, django, python           (duplicates automatically removed)
 
 #### Method 2: Direct URL Access
 
-- Navigate directly to: `/blog/tags/python/`
-- Works with any tag name (case-insensitive)
+- Navigate directly to: `/blog/tags/python/` (use slug format)
+- Tag names are automatically converted to slugs (lowercase, hyphens)
+- Example: Tag "Web Development" becomes `/blog/tags/web-development/`
+- Works with any tag (case-insensitive lookup)
 - Returns 404 if tag doesn't exist
 
 #### Tag Filtering Features
 
-- **Case-Insensitive**: `/blog/tags/Python/` and `/blog/tags/python/` show the same results
-- **URL Encoding**: Special characters in tag names are automatically handled
+- **Slug-Based URLs**: Tag names are converted to URL-friendly slugs (lowercase, hyphens)
+- **Case-Insensitive**: Tag lookup is case-insensitive (slug matching)
+- **Automatic Slugification**: Tag names with spaces become hyphens (e.g., "web development" → "web-development")
 - **Empty State**: Shows helpful message if no posts have that tag
 - **Pagination**: Large result sets are paginated (10 posts per page)
 
@@ -2349,7 +2352,7 @@ If no posts match your search:
 #### Search URLs
 
 - **Search**: `/blog/search/?q=query`
-- **Tag Filter**: `/blog/tags/<tag-name>/`
+- **Tag Filter**: `/blog/tags/<tag-slug>/` (uses slug format)
 - **All Posts**: `/blog/` or `/blog/posts/`
 
 #### Examples
@@ -2359,7 +2362,10 @@ If no posts match your search:
 /blog/search/?q=django%20tutorial
 /blog/tags/python/
 /blog/tags/web-development/
+/blog/tags/django-tutorial/
 ```
+
+**Note**: Tag URLs use slug format (lowercase, hyphens instead of spaces). Tag names are automatically converted to slugs in templates using Django's `slugify` filter.
 
 ---
 
@@ -2376,8 +2382,9 @@ If no posts match your search:
 
 - **Model**: `Tag` model with `name` field (unique, max 50 chars)
 - **Relationship**: Many-to-many with `Post` model
-- **View**: `TagPostListView` for tag filtering
-- **Normalization**: Tags are stored in lowercase
+- **View**: `PostByTagListView` for tag filtering
+- **URL Pattern**: Uses slug format (`tags/<slug:tag_slug>/`)
+- **Normalization**: Tags are stored in lowercase, URLs use slugified format
 
 ---
 

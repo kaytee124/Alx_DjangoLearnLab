@@ -65,7 +65,7 @@ class PostListView(ListView):
         return context
 
 
-class TagPostListView(ListView):
+class PostByTagListView(ListView):
     """View to display posts filtered by a specific tag"""
     model = Post
     template_name = 'blog/post_list.html'
@@ -73,26 +73,41 @@ class TagPostListView(ListView):
     ordering = ['-published_date']
     paginate_by = 10
 
+    def get_tag_from_slug(self, tag_slug):
+        """Find tag by matching slugified name"""
+        from django.utils.text import slugify
+        # Get all tags and find the one matching the slug
+        tags = Tag.objects.all()
+        for tag in tags:
+            if slugify(tag.name) == tag_slug:
+                return tag
+        return None
+
     def get_queryset(self):
-        # Get tag name from URL parameter and decode it
-        tag_name = unquote(self.kwargs.get('tag_name', ''))
-        # Get tag object (case-insensitive lookup)
-        tag = get_object_or_404(Tag, name__iexact=tag_name)
+        # Get tag slug from URL parameter
+        tag_slug = self.kwargs.get('tag_slug', '')
+        # Find tag by matching slugified name
+        tag = self.get_tag_from_slug(tag_slug)
+        if not tag:
+            from django.http import Http404
+            raise Http404("Tag not found")
         # Filter posts by tag
         return Post.objects.filter(tags=tag).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Decode tag name from URL
-        tag_name = unquote(self.kwargs.get('tag_name', ''))
-        # Get the actual tag object for display (preserves original case)
-        try:
-            tag = Tag.objects.get(name__iexact=tag_name)
+        # Get tag slug from URL
+        tag_slug = self.kwargs.get('tag_slug', '')
+        # Find tag by slug
+        tag = self.get_tag_from_slug(tag_slug)
+        if tag:
             context['tag'] = tag
             context['tag_name'] = tag.name
-        except Tag.DoesNotExist:
+            context['tag_slug'] = tag_slug
+        else:
             context['tag'] = None
-            context['tag_name'] = tag_name
+            context['tag_name'] = tag_slug.replace('-', ' ')
+            context['tag_slug'] = tag_slug
         context['is_tag_filter'] = True
         return context
 
