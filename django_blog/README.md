@@ -738,7 +738,7 @@ The Django blog application includes a complete blog post management system that
 ### 1. View All Posts (List View)
 - **URL**: `/blog/` or `/blog/home/` or `/blog/posts/`
 - **View**: `ListView` (class-based view)
-- **Template**: `blog/list.html`
+- **Template**: `blog/post_list.html`
 - **Access**: Public (no authentication required)
 - **Features**:
   - Displays all posts in reverse chronological order (newest first)
@@ -750,7 +750,7 @@ The Django blog application includes a complete blog post management system that
 ### 2. View Post Details
 - **URL**: `/blog/post/<post_id>/`
 - **View**: `DetailView` (class-based view)
-- **Template**: `blog/detail.html`
+- **Template**: `blog/post_detail.html`
 - **Access**: Public (no authentication required)
 - **Features**:
   - Displays full post content
@@ -761,7 +761,7 @@ The Django blog application includes a complete blog post management system that
 ### 3. Create New Post
 - **URL**: `/blog/post/new/`
 - **View**: `CreateView` (class-based view with `LoginRequiredMixin`)
-- **Template**: `blog/create.html`
+- **Template**: `blog/post_create.html`
 - **Form**: `PostForm`
 - **Access**: Authenticated users only
 - **Features**:
@@ -774,7 +774,7 @@ The Django blog application includes a complete blog post management system that
 ### 4. Update Post
 - **URL**: `/blog/post/<post_id>/edit/`
 - **View**: `UpdateView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
-- **Template**: `blog/update.html`
+- **Template**: `blog/post_update.html`
 - **Form**: `PostForm`
 - **Access**: Post author only
 - **Features**:
@@ -787,7 +787,7 @@ The Django blog application includes a complete blog post management system that
 ### 5. Delete Post
 - **URL**: `/blog/post/<post_id>/delete/`
 - **View**: `DeleteView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
-- **Template**: `blog/delete.html`
+- **Template**: `blog/post_delete.html`
 - **Access**: Post author only
 - **Features**:
   - Confirmation page before deletion
@@ -961,7 +961,7 @@ class Post(models.Model):
   - Home/Blog Posts links in header navigation
 
 #### Template Location
-- `blog/templates/blog/list.html`
+- `blog/templates/blog/post_list.html`
 - Extends `blog/base.html`
 
 ### 2. Post Detail View
@@ -987,7 +987,7 @@ class Post(models.Model):
 - "Back to All Posts" link returns to list view
 
 #### Template Location
-- `blog/templates/blog/detail.html`
+- `blog/templates/blog/post_detail.html`
 - Extends `blog/base.html`
 
 ### 3. Create Post
@@ -1028,7 +1028,7 @@ class Post(models.Model):
 - Author automatically set (cannot be spoofed)
 
 #### Template Location
-- `blog/templates/blog/create.html`
+- `blog/templates/blog/post_create.html`
 - Extends `blog/base.html`
 
 ### 4. Update Post
@@ -1072,7 +1072,7 @@ class Post(models.Model):
 - Publication date is preserved
 
 #### Template Location
-- `blog/templates/blog/update.html`
+- `blog/templates/blog/post_update.html`
 - Extends `blog/base.html`
 
 ### 5. Delete Post
@@ -1107,7 +1107,7 @@ class Post(models.Model):
 - Confirmation required (prevents accidental deletion)
 
 #### Template Location
-- `blog/templates/blog/delete.html`
+- `blog/templates/blog/post_delete.html`
 - Extends `blog/base.html`
 
 ---
