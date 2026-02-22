@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.generics import CreateAPIView
+from rest_framework import generics
 from .serializers import UserAccountRegisterSerializer, UserAccountLoginSerializer, UserAccountSerializer
 from .models import CustomUser
 from rest_framework.response import Response
@@ -19,7 +20,7 @@ class UserAccountLoginView(APIView):
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class FollowUserView(GenericAPIView):
+class FollowUserView(generics.GenericAPIView):
     """
     View to follow a user.
     Users can only modify their own following list.
@@ -57,7 +58,7 @@ class FollowUserView(GenericAPIView):
             status=status.HTTP_200_OK
         )
 
-class UnfollowUserView(GenericAPIView):
+class UnfollowUserView(generics.GenericAPIView):
     """
     View to unfollow a user.
     Users can only modify their own following list.
