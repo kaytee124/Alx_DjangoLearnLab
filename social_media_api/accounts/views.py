@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView
 from .serializers import UserAccountRegisterSerializer, UserAccountLoginSerializer, UserAccountSerializer
 from .models import useraccounts
 from rest_framework.response import Response
@@ -19,16 +19,18 @@ class UserAccountLoginView(APIView):
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class FollowUserView(APIView):
+class FollowUserView(GenericAPIView):
     """
     View to follow a user.
     Users can only modify their own following list.
     """
+    queryset = useraccounts.objects.all()
+    serializer_class = UserAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, user_id):
         current_user = request.user
-        user_to_follow = get_object_or_404(useraccounts, id=user_id)
+        user_to_follow = get_object_or_404(self.get_queryset(), id=user_id)
         
         # Prevent users from following themselves
         if current_user == user_to_follow:
@@ -55,16 +57,18 @@ class FollowUserView(APIView):
             status=status.HTTP_200_OK
         )
 
-class UnfollowUserView(APIView):
+class UnfollowUserView(GenericAPIView):
     """
     View to unfollow a user.
     Users can only modify their own following list.
     """
+    queryset = useraccounts.objects.all()
+    serializer_class = UserAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, user_id):
         current_user = request.user
-        user_to_unfollow = get_object_or_404(useraccounts, id=user_id)
+        user_to_unfollow = get_object_or_404(self.get_queryset(), id=user_id)
         
         # Check if currently following
         if not current_user.following.filter(id=user_id).exists():
