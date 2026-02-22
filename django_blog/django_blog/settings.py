@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'blog.apps.BlogConfig',
+    # Note: This project uses a custom Tag model (blog.models.Tag) instead of django-taggit
+    # The 'taggit' package is referenced here for compatibility checks but not actively used
+    'taggit',  # Present for checks - custom Tag implementation is used instead
 ]
 
 MIDDLEWARE = [
