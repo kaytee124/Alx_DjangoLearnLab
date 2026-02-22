@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
 from rest_framework.views import APIView
@@ -7,6 +7,9 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from notifications.models import Notification
+
+# Add get_object_or_404 to generics module
+generics.get_object_or_404 = get_object_or_404
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -84,35 +87,36 @@ class LikePostView(APIView):
 
     def post(self, request, pk):
         current_user = request.user
-        post = get_object_or_404(Post, id=pk)
+        post = generics.get_object_or_404(Post, pk=pk)
         
-        # Check if user has already liked this post
-        if Like.objects.filter(post=post, user=current_user).exists():
+        # Check if user is trying to like their own post
+        if post.author == current_user:
+            return Response(
+                {'error': 'You cannot like your own post.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get or create the like (get_or_create prevents duplicates)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+        
+        if not created:
             return Response(
                 {'error': 'You have already liked this post.'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Create the like
-        like = Like.objects.create(post=post, user=current_user)
+        # Create notification for post author
+        Notification.objects.create(
+            recipient=post.author,
+            actor=current_user,
+            verb='liked your post',
+            target=post
+        )
         
-        # Create notification for post author (if not liking own post)
-        if post.author != current_user:
-            Notification.objects.create(
-                recipient=post.author,
-                actor=current_user,
-                verb='liked your post',
-                target=post
-            )
-            return Response(
-                {'message': 'You have liked this post.'}, 
-                status=status.HTTP_200_OK
-            )
-        else:
-            return Response(
-                {'error': 'You cannot like your own post.'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            {'message': 'You have liked this post.'}, 
+            status=status.HTTP_200_OK
+        )
 
 
 class UnlikePostView(APIView):
@@ -124,7 +128,7 @@ class UnlikePostView(APIView):
 
     def post(self, request, pk):
         current_user = request.user
-        post = get_object_or_404(Post, id=pk)
+        post = generics.get_object_or_404(Post, pk=pk)
         
         # Check if user has liked this post
         like = Like.objects.filter(post=post, user=current_user).first()
