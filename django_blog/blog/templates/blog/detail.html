@@ -1,0 +1,22 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ post.title }}</h2>
+    <p><small>By {{ post.author.username }} on {{ post.published_date|date:"M d, Y H:i" }}</small></p>
+    <div class="post-content">
+        {{ post.content|linebreaks }}
+    </div>
+
+    {% if user.is_authenticated and post.author == user %}
+    <div class="post-actions">
+        <a href="{% url 'post_update' post.pk %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Delete</a>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'post_list' %}" class="btn btn-primary">Back to All Posts</a>
+</div>
+{% endblock %}

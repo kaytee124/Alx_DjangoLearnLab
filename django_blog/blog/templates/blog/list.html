@@ -1,0 +1,33 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}All Posts{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if user.is_authenticated %}
+    <nav class="top-navigation" style="margin-bottom: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
+        <ul style="list-style: none; display: flex; gap: 15px; margin: 0; padding: 0;">
+            <li><a href="{% url 'post_create' %}" class="btn btn-primary" style="text-decoration: none; padding: 8px 15px; background-color: #007bff; color: white; border-radius: 3px;">Create Post</a></li>
+            <li><a href="{% url 'profile' %}" class="btn btn-secondary" style="text-decoration: none; padding: 8px 15px; background-color: #6c757d; color: white; border-radius: 3px;">Profile</a></li>
+            <li><a href="{% url 'logout' %}" class="btn btn-danger" style="text-decoration: none; padding: 8px 15px; background-color: #dc3545; color: white; border-radius: 3px;">Logout</a></li>
+        </ul>
+    </nav>
+    {% endif %}
+    
+    <h2>All Posts</h2>
+
+    {% if posts %}
+        <ul class="post-list">
+            {% for post in posts %}
+            <li class="post-item">
+                <h3><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h3>
+                <p>{{ post.content|truncatechars:100 }}</p>
+                <p><small>By {{ post.author.username }} on {{ post.published_date|date:"M d, Y H:i" }}</small></p>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No posts available.</p>
+    {% endif %}
+</div>
+{% endblock %}

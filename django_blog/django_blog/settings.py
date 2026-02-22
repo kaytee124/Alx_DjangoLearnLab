@@ -132,7 +132,7 @@ TEMPLATES_DIR = [
 ]
 
 # Redirect after login
-LOGIN_REDIRECT_URL = 'profile'
+LOGIN_REDIRECT_URL = 'post_list'
 
 # Redirect after logout
 LOGOUT_REDIRECT_URL = None

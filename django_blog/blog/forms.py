@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile, Post
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -40,3 +40,12 @@ class UserProfileForm(forms.ModelForm):
                     profile.save()
 
         return user
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Enter the title of your post'}),
+            'content': forms.Textarea(attrs={'placeholder': 'Enter the content of your post'})
+        }
