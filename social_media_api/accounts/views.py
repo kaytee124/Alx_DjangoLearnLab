@@ -1,14 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from .serializers import UserAccountRegisterSerializer, UserAccountLoginSerializer, UserAccountSerializer
-from .models import useraccounts
+from .models import CustomUser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
 
 class UserAccountRegisterView(CreateAPIView):
-    queryset = useraccounts.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserAccountRegisterSerializer
 
 class UserAccountLoginView(APIView):
@@ -24,7 +24,7 @@ class FollowUserView(GenericAPIView):
     View to follow a user.
     Users can only modify their own following list.
     """
-    queryset = useraccounts.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -62,7 +62,7 @@ class UnfollowUserView(GenericAPIView):
     View to unfollow a user.
     Users can only modify their own following list.
     """
-    queryset = useraccounts.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
 

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
-class useraccounts(AbstractUser):
+class CustomUser(AbstractUser):
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True)
     following = models.ManyToManyField('self', blank=True, related_name='followers', symmetrical=False)
