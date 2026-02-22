@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
+from notifications.models import Notification
 
 class UserAccountRegisterView(CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -49,6 +50,14 @@ class FollowUserView(generics.GenericAPIView):
         
         # Add to following list
         current_user.following.add(user_to_follow)
+        
+        # Create notification for the user being followed
+        Notification.objects.create(
+            recipient=user_to_follow,
+            actor=current_user,
+            verb='started following you',
+            target=None
+        )
         
         return Response(
             {
