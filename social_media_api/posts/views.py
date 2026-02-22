@@ -51,10 +51,10 @@ class FeedView(APIView):
 
     def get(self, request):
         user = request.user
-        following = user.following.all()
+        following_users = user.following.all()
         
         # Get posts from users that the current user follows
-        posts = Post.objects.filter(author__in=following).order_by('-created_at')
+        posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
         
         serializer = self.serializer_class(posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
