@@ -12,11 +12,15 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
     path('edit_profile/', views.edit_profile, name='edit_profile'),
-    path('', views.ListView.as_view(), name='post_list'),
-    path('home/', views.ListView.as_view(), name='home'),  # Alias for base template
-    path('posts/', views.ListView.as_view(), name='posts'),  # Alias for base template
-    path('post/<int:pk>/', views.DetailView.as_view(), name='post_detail'),
-    path('post/new/', views.CreateView.as_view(), name='post_create'),
-    path('post/<int:pk>/update/', views.UpdateView.as_view(), name='post_update'),
-    path('post/<int:pk>/delete/', views.DeleteView.as_view(), name='post_delete'),
+    path('', views.PostListView.as_view(), name='post_list'),
+    path('home/', views.PostListView.as_view(), name='home'),  # Alias for base template
+    path('posts/', views.PostListView.as_view(), name='posts'),  # Alias for base template
+    path('post/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),
+    path('post/new/', views.PostCreateView.as_view(), name='post_create'),
+    path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post_update'),
+    path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
+    # Comment URLs - nested under posts for better structure
+    path('post/<int:post_id>/comments/new/', views.CommentCreateView.as_view(), name='comment_create'),
+    path('post/<int:post_id>/comments/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment_update'),
+    path('post/<int:post_id>/comments/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete'),
 ]

@@ -1,0 +1,27 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Edit Comment{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Comment</h2>
+    
+    <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <p><strong>Original Post:</strong> {{ object.post.title }}</p>
+        <p><small>By {{ object.post.author.username }}</small></p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.content.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: bold;">Comment:</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+                <div style="color: red; margin-top: 5px;">{{ form.content.errors }}</div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Update Comment</button>
+        <a href="{% url 'post_detail' object.post.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

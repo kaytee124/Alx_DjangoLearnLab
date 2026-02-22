@@ -130,10 +130,22 @@ This Django blog application implements a comprehensive authentication system us
 
 ### Views
 
-#### Custom Views
+#### Custom Function Views
 - `register()`: Handles user registration
 - `profile()`: Displays user profile (login required)
 - `edit_profile()`: Handles profile editing (login required)
+
+#### Blog Post Class-Based Views
+- `PostListView`: Displays all blog posts (public access)
+- `PostDetailView`: Displays individual post with comments (public access)
+- `PostCreateView`: Creates new blog post (authenticated users only)
+- `PostUpdateView`: Updates existing post (post author only)
+- `PostDeleteView`: Deletes existing post (post author only)
+
+#### Comment Class-Based Views
+- `CommentCreateView`: Creates new comment (authenticated users only)
+- `CommentUpdateView`: Updates existing comment (comment author only)
+- `CommentDeleteView`: Deletes existing comment (comment author only)
 
 #### Django Built-in Views
 - `LoginView`: User authentication
@@ -643,14 +655,40 @@ All authentication URLs are under `/blog/` prefix:
 - Profile: `/blog/profile/`
 - Edit Profile: `/blog/edit_profile/`
 
+All blog post URLs are under `/blog/` prefix:
+- List: `/blog/` or `/blog/home/` or `/blog/posts/`
+- Detail: `/blog/post/<post_id>/`
+- Create: `/blog/post/new/`
+- Update: `/blog/post/<post_id>/update/`
+- Delete: `/blog/post/<post_id>/delete/`
+
+All comment URLs are nested under posts:
+- Create: `/blog/post/<post_id>/comments/new/`
+- Update: `/blog/post/<post_id>/comments/<comment_id>/update/`
+- Delete: `/blog/post/<post_id>/comments/<comment_id>/delete/`
+
 ### Templates
 All templates are located in `blog/templates/blog/`:
+
+**Authentication Templates:**
 - `login.html` - Login form
 - `logout.html` - Logout confirmation
 - `register.html` - Registration form
 - `profile.html` - User profile display
 - `edit_profile.html` - Profile editing form
 - Password reset templates (if custom)
+
+**Blog Post Templates:**
+- `post_list.html` - List of all blog posts
+- `post_detail.html` - Individual post with comments integrated
+- `post_create.html` - Create new post form
+- `post_update.html` - Update post form
+- `post_delete.html` - Delete post confirmation
+
+**Comment Templates:**
+- `post_comment_update.html` - Update comment form
+- `post_comment_delete.html` - Delete comment confirmation
+- Comment form is integrated into `post_detail.html` (no separate template)
 
 ### Signals
 - `post_save` signal on User model
@@ -737,7 +775,7 @@ The Django blog application includes a complete blog post management system that
 
 ### 1. View All Posts (List View)
 - **URL**: `/blog/` or `/blog/home/` or `/blog/posts/`
-- **View**: `ListView` (class-based view)
+- **View**: `PostListView` (class-based view)
 - **Template**: `blog/post_list.html`
 - **Access**: Public (no authentication required)
 - **Features**:
@@ -749,7 +787,7 @@ The Django blog application includes a complete blog post management system that
 
 ### 2. View Post Details
 - **URL**: `/blog/post/<post_id>/`
-- **View**: `DetailView` (class-based view)
+- **View**: `PostDetailView` (class-based view)
 - **Template**: `blog/post_detail.html`
 - **Access**: Public (no authentication required)
 - **Features**:
@@ -760,7 +798,7 @@ The Django blog application includes a complete blog post management system that
 
 ### 3. Create New Post
 - **URL**: `/blog/post/new/`
-- **View**: `CreateView` (class-based view with `LoginRequiredMixin`)
+- **View**: `PostCreateView` (class-based view with `LoginRequiredMixin`)
 - **Template**: `blog/post_create.html`
 - **Form**: `PostForm`
 - **Access**: Authenticated users only
@@ -773,7 +811,7 @@ The Django blog application includes a complete blog post management system that
 
 ### 4. Update Post
 - **URL**: `/blog/post/<post_id>/edit/`
-- **View**: `UpdateView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
+- **View**: `PostUpdateView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
 - **Template**: `blog/post_update.html`
 - **Form**: `PostForm`
 - **Access**: Post author only
@@ -786,7 +824,7 @@ The Django blog application includes a complete blog post management system that
 
 ### 5. Delete Post
 - **URL**: `/blog/post/<post_id>/delete/`
-- **View**: `DeleteView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
+- **View**: `PostDeleteView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
 - **Template**: `blog/post_delete.html`
 - **Access**: Post author only
 - **Features**:
@@ -854,14 +892,14 @@ class Post(models.Model):
 
 1. **Access Post List**:
    - User navigates to `/blog/` (home page)
-   - `ListView` retrieves all posts from database
+   - `PostListView` retrieves all posts from database
    - Posts are ordered by `published_date` in descending order (newest first)
    - Template displays posts with title, truncated content, author, and date
 
 2. **View Post Details**:
    - User clicks on a post title from the list
    - Navigates to `/blog/post/<post_id>/`
-   - `DetailView` retrieves the specific post
+   - `PostDetailView` retrieves the specific post
    - Full post content is displayed
    - If user is the author, Edit and Delete buttons are shown
 
@@ -870,7 +908,7 @@ class Post(models.Model):
 1. **Access Create Form**:
    - Authenticated user clicks "Create Post" button
    - Navigates to `/blog/post/new/`
-   - `CreateView` displays empty `PostForm`
+   - `PostCreateView` displays empty `PostForm`
 
 2. **Fill and Submit Form**:
    - User enters title and content
@@ -896,7 +934,7 @@ class Post(models.Model):
 1. **Access Edit Form**:
    - Post author clicks "Edit" button on detail page
    - Navigates to `/blog/post/<post_id>/edit/`
-   - `UpdateView` checks permissions:
+   - `PostUpdateView` checks permissions:
      - User must be authenticated (`LoginRequiredMixin`)
      - User must be the post author (`UserPassesTestMixin`)
    - If authorized, form is displayed with existing post data
@@ -922,7 +960,7 @@ class Post(models.Model):
 1. **Access Delete Confirmation**:
    - Post author clicks "Delete" button on detail page
    - Navigates to `/blog/post/<post_id>/delete/`
-   - `DeleteView` checks permissions:
+   - `PostDeleteView` checks permissions:
      - User must be authenticated
      - User must be the post author
    - If authorized, confirmation page is displayed
@@ -940,7 +978,7 @@ class Post(models.Model):
 ### 1. Post List View
 
 #### How It Works
-- Uses Django's generic `ListView`
+- Uses Django's generic `ListView` (implemented as `PostListView`)
 - Queries all `Post` objects from database
 - Orders by `published_date` in descending order
 - Passes posts to template as `posts` context variable
@@ -967,7 +1005,7 @@ class Post(models.Model):
 ### 2. Post Detail View
 
 #### How It Works
-- Uses Django's generic `DetailView`
+- Uses Django's generic `DetailView` (implemented as `PostDetailView`)
 - Retrieves single post by primary key from URL
 - Passes post to template as `post` context variable
 - No authentication required (public access)
@@ -993,7 +1031,7 @@ class Post(models.Model):
 ### 3. Create Post
 
 #### How It Works
-- Uses Django's generic `CreateView`
+- Uses Django's generic `CreateView` (implemented as `PostCreateView`)
 - Protected by `LoginRequiredMixin` (requires authentication)
 - Uses `PostForm` for form rendering and validation
 - Automatically sets author and publication date
@@ -1034,7 +1072,7 @@ class Post(models.Model):
 ### 4. Update Post
 
 #### How It Works
-- Uses Django's generic `UpdateView`
+- Uses Django's generic `UpdateView` (implemented as `PostUpdateView`)
 - Protected by `LoginRequiredMixin` (requires authentication)
 - Protected by `UserPassesTestMixin` (requires author permission)
 - Uses `PostForm` for form rendering and validation
@@ -1078,7 +1116,7 @@ class Post(models.Model):
 ### 5. Delete Post
 
 #### How It Works
-- Uses Django's generic `DeleteView`
+- Uses Django's generic `DeleteView` (implemented as `PostDeleteView`)
 - Protected by `LoginRequiredMixin` (requires authentication)
 - Protected by `UserPassesTestMixin` (requires author permission)
 - Displays confirmation page before deletion
@@ -1471,14 +1509,613 @@ All blog post URLs are under `/blog/` prefix:
 - Includes placeholder text for better UX
 
 ### View Classes
-- All views use Django's generic class-based views
-- Mixins provide authentication and permission checks
+- **Blog Post Views**: All use Django's generic class-based views
+  - `PostListView`: Extends Django's `ListView`
+  - `PostDetailView`: Extends Django's `DetailView`
+  - `PostCreateView`: Extends Django's `CreateView` with `LoginRequiredMixin`
+  - `PostUpdateView`: Extends Django's `UpdateView` with `LoginRequiredMixin` and `UserPassesTestMixin`
+  - `PostDeleteView`: Extends Django's `DeleteView` with `LoginRequiredMixin` and `UserPassesTestMixin`
+- **Comment Views**: All use Django's generic class-based views
+  - `CommentCreateView`: Extends Django's `CreateView` with `LoginRequiredMixin`
+  - `CommentUpdateView`: Extends Django's `UpdateView` with `LoginRequiredMixin` and `UserPassesTestMixin`
+  - `CommentDeleteView`: Extends Django's `DeleteView` with `LoginRequiredMixin` and `UserPassesTestMixin`
+- Mixins provide authentication and permission checks (`LoginRequiredMixin`, `UserPassesTestMixin`)
 - Custom methods handle author assignment and redirects
+- **Naming Convention**: View class names are prefixed (Post/Comment) to avoid conflicts with Django's generic view imports and ensure proper method resolution order (MRO)
 
 ### Template Structure
 - All templates extend `blog/base.html`
 - Consistent navigation across pages
 - Conditional display based on authentication and ownership
+
+---
+
+# Comment System Documentation
+
+## Table of Contents
+1. [Comment System Overview](#comment-system-overview)
+2. [Comment Features](#comment-features)
+3. [Comment Model](#comment-model)
+4. [URL Structure](#comment-url-structure)
+5. [User Interaction Flow](#comment-user-interaction-flow)
+6. [Permissions and Access Control](#comment-permissions)
+7. [Data Handling](#comment-data-handling)
+8. [Testing Guide for Comments](#testing-guide-for-comments)
+
+---
+
+## Comment System Overview
+
+The Django blog application includes a comprehensive comment system that allows authenticated users to add, edit, and delete comments on blog posts. Comments are integrated directly into the post detail view, providing a seamless user experience.
+
+### Key Components
+- **Comment Display**: All comments shown on post detail page
+- **Add Comment**: Authenticated users can add comments to any post
+- **Edit Comment**: Comment authors can edit their own comments
+- **Delete Comment**: Comment authors can delete their own comments
+- **Comment Visibility**: All comments are publicly visible
+- **Edit Indicator**: Comments show "(edited)" if modified after creation
+
+---
+
+## Comment Features
+
+### 1. View Comments
+- **Location**: Integrated into post detail page (`/blog/post/<post_id>/`)
+- **Access**: Public (no authentication required)
+- **Features**:
+  - Displays all comments for the post
+  - Shows comment author, content, and timestamp
+  - Displays "(edited)" indicator if comment was modified
+  - Comments ordered by creation date (newest first)
+  - Comment count displayed in header
+
+### 2. Add Comment
+- **URL**: `/blog/post/<int:post_id>/comments/new/`
+- **View**: `CommentCreateView` (class-based view with `LoginRequiredMixin`)
+- **Template**: Integrated into `blog/post_detail.html`
+- **Form**: `CommentForm`
+- **Access**: Authenticated users only
+- **Features**:
+  - Comment form displayed on post detail page
+  - Content field (required, textarea)
+  - Automatic author assignment (current logged-in user)
+  - Automatic post association
+  - Automatic timestamp (created_at)
+  - Redirects back to post detail page after creation
+
+### 3. Edit Comment
+- **URL**: `/blog/post/<int:post_id>/comments/<int:pk>/update/`
+- **View**: `CommentUpdateView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
+- **Template**: `blog/post_comment_update.html`
+- **Form**: `CommentForm`
+- **Access**: Comment author only
+- **Features**:
+  - Pre-filled form with existing comment content
+  - Can update comment content
+  - Author cannot be changed
+  - Post association cannot be changed
+  - Updated timestamp (updated_at) is automatically set
+  - Redirects back to post detail page after update
+
+### 4. Delete Comment
+- **URL**: `/blog/post/<int:post_id>/comments/<int:pk>/delete/`
+- **View**: `CommentDeleteView` (class-based view with `LoginRequiredMixin` and `UserPassesTestMixin`)
+- **Template**: `blog/post_comment_delete.html`
+- **Access**: Comment author only
+- **Features**:
+  - Confirmation page before deletion
+  - Shows comment content and original post for context
+  - Permanent deletion from database
+  - Redirects back to post detail page after deletion
+
+---
+
+## Comment Model
+
+### Comment Model Structure
+**Location**: `blog/models.py`
+
+```python
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+```
+
+### Model Fields
+
+#### `post` (ForeignKey)
+- **Type**: ForeignKey to Post model
+- **Required**: Yes
+- **On Delete**: CASCADE (if post is deleted, all comments are deleted)
+- **Description**: The blog post this comment belongs to
+- **Access**: Set automatically during comment creation
+
+#### `author` (ForeignKey)
+- **Type**: ForeignKey to User model
+- **Required**: Yes
+- **On Delete**: CASCADE (if user is deleted, all their comments are deleted)
+- **Description**: The user who created the comment
+- **Access**: Automatically set to current logged-in user during creation
+
+#### `content` (TextField)
+- **Type**: TextField
+- **Required**: Yes
+- **Description**: The text content of the comment
+- **Validation**: Enforced at form and model level
+- **No length limit**: Can contain large amounts of text
+
+#### `created_at` (DateTimeField)
+- **Type**: DateTimeField
+- **Auto-populated**: Yes (`auto_now_add=True`)
+- **Description**: Timestamp when the comment was created
+- **Behavior**: Automatically set when comment is first created, cannot be modified
+- **Format**: Stored as datetime object, displayed in templates using date filters
+
+#### `updated_at` (DateTimeField)
+- **Type**: DateTimeField
+- **Auto-populated**: Yes (`auto_now=True`)
+- **Description**: Timestamp when the comment was last updated
+- **Behavior**: Automatically updated whenever the comment is saved
+- **Use**: Used to determine if comment was edited (compared to created_at)
+
+### Model Methods
+
+#### `__str__()`
+- Returns the comment content (truncated)
+- Used for display in admin interface and debugging
+
+---
+
+## Comment URL Structure
+
+### URL Patterns
+All comment URLs follow a nested structure under posts for better organization:
+
+```
+/blog/post/<int:post_id>/comments/new/          # Create comment
+/blog/post/<int:post_id>/comments/<int:pk>/update/  # Update comment
+/blog/post/<int:post_id>/comments/<int:pk>/delete/  # Delete comment
+```
+
+### URL Naming Convention
+- **Create**: `comment_create` (requires `post_id`)
+- **Update**: `comment_update` (requires `post_id` and comment `pk`)
+- **Delete**: `comment_delete` (requires `post_id` and comment `pk`)
+
+### URL Benefits
+- **Logical Structure**: Comments are nested under posts
+- **Intuitive Paths**: Clear hierarchy (post → comments → action)
+- **RESTful Design**: Follows REST principles
+- **Easy Navigation**: URLs clearly indicate the relationship
+
+---
+
+## Comment User Interaction Flow
+
+### Viewing Comments Flow
+
+1. **Access Post Detail**:
+   - User navigates to `/blog/post/<post_id>/`
+   - `PostDetailView` retrieves the post and related comments
+   - Comments are ordered by `created_at` in descending order (newest first)
+   - Template displays post content and all comments below
+
+2. **Comment Display**:
+   - Each comment shows:
+     - Author username
+     - Creation timestamp
+     - "(edited)" indicator if updated_at != created_at
+     - Comment content
+     - Edit/Delete buttons (if user is comment author)
+
+### Adding Comments Flow
+
+1. **Access Comment Form**:
+   - Authenticated user views post detail page
+   - Comment form is displayed in comments section
+   - Form shows textarea for comment content
+
+2. **Submit Comment**:
+   - User enters comment content
+   - Clicks "Post Comment" button
+   - Form validation occurs:
+     - Content must not be empty
+
+3. **Comment Creation**:
+   - If form is valid:
+     - `form_valid()` method is called
+     - Post is set from URL parameter (`post_id`)
+     - Author is automatically set to `request.user`
+     - `created_at` is automatically set to current timestamp
+     - Comment is saved to database
+     - User is redirected back to post detail page
+   - If form is invalid:
+     - Error messages are displayed
+     - User can correct and resubmit
+
+### Editing Comments Flow
+
+1. **Access Edit Form**:
+   - Comment author clicks "Edit" button on comment
+   - Navigates to `/blog/post/<post_id>/comments/<comment_id>/update/`
+   - `CommentUpdateView` checks permissions:
+     - User must be authenticated (`LoginRequiredMixin`)
+     - User must be the comment author (`UserPassesTestMixin`)
+   - If authorized, form is displayed with existing comment content
+
+2. **Update and Submit**:
+   - User modifies comment content
+   - Clicks "Update Comment" button
+   - Form validation occurs (content must not be empty)
+
+3. **Comment Update**:
+   - If form is valid:
+     - `form_valid()` method is called
+     - Author is preserved (cannot be changed)
+     - Post association is preserved (cannot be changed)
+     - `updated_at` is automatically updated
+     - Comment is updated in database
+     - User is redirected back to post detail page
+   - If form is invalid:
+     - Error messages are displayed
+     - User can correct and resubmit
+
+### Deleting Comments Flow
+
+1. **Access Delete Confirmation**:
+   - Comment author clicks "Delete" button on comment
+   - Navigates to `/blog/post/<post_id>/comments/<comment_id>/delete/`
+   - `CommentDeleteView` checks permissions:
+     - User must be authenticated
+     - User must be the comment author
+   - If authorized, confirmation page is displayed
+
+2. **Confirm Deletion**:
+   - User sees comment content and original post for context
+   - Warning message about permanent deletion
+   - User clicks "Yes, Delete Comment" button
+   - Comment is permanently deleted from database
+   - User is redirected back to post detail page
+
+---
+
+## Comment Permissions
+
+### Access Control Matrix
+
+| Feature | Public Access | Authenticated Users | Comment Author Only |
+|---------|--------------|---------------------|---------------------|
+| View Comments | ✅ Yes | ✅ Yes | N/A |
+| Add Comment | ❌ No | ✅ Yes | N/A |
+| Edit Comment | ❌ No | ❌ No | ✅ Yes |
+| Delete Comment | ❌ No | ❌ No | ✅ Yes |
+
+### Permission Implementation
+
+#### 1. Public Access (No Authentication Required)
+- **View Comments**: No authentication check
+- **Template Logic**: Uses `{% if user.is_authenticated %}` to conditionally show form
+
+#### 2. Authentication Required
+- **Add Comment**: Uses `LoginRequiredMixin`
+  - Unauthenticated users see login prompt
+  - Form is hidden for non-authenticated users
+
+#### 3. Author-Only Access
+- **Edit Comment**: Uses `LoginRequiredMixin` + `UserPassesTestMixin`
+  - `test_func()` checks: `self.request.user == comment.author`
+  - Non-authors receive 403 Forbidden error
+- **Delete Comment**: Uses `LoginRequiredMixin` + `UserPassesTestMixin`
+  - Same permission check as edit
+  - Non-authors cannot access delete confirmation page
+
+### Security Measures
+
+1. **CSRF Protection**: All forms include CSRF tokens
+2. **Authentication Middleware**: Ensures user authentication state
+3. **Permission Mixins**: Enforce access control at view level
+4. **Template-Level Checks**: Additional security in templates
+5. **Author Assignment**: Author is set server-side, cannot be manipulated
+6. **Post Association**: Post is set from URL parameter, cannot be changed
+
+### Special Notes
+
+- **Author Field**: Automatically set during creation, cannot be changed during update
+- **Post Field**: Automatically set during creation, cannot be changed during update
+- **CASCADE Deletion**: If a post is deleted, all its comments are automatically deleted
+- **CASCADE Deletion**: If a user is deleted, all their comments are automatically deleted
+- **No Soft Delete**: Comment deletion is permanent (no recovery)
+- **Edit Indicator**: Comments show "(edited)" if updated_at differs from created_at
+
+---
+
+## Comment Data Handling
+
+### Database Operations
+
+#### Create Operation
+```python
+# Automatic operations during comment creation:
+1. Content is validated
+2. Post is set from URL parameter (post_id)
+3. Author is set to request.user
+4. created_at is set to current timestamp (auto_now_add)
+5. updated_at is set to current timestamp (auto_now)
+6. Comment is saved to database
+7. Primary key is generated
+```
+
+#### Read Operation
+```python
+# Post Detail View:
+- Queries: Comment.objects.filter(post=self.object).order_by('-created_at')
+- Returns: QuerySet of all comments for the post
+- Ordered by: Creation date (newest first)
+```
+
+#### Update Operation
+```python
+# Automatic operations during comment update:
+1. Existing comment is retrieved by primary key
+2. Permission is checked (user must be author)
+3. Content is updated
+4. Author is preserved (cannot be changed)
+5. Post is preserved (cannot be changed)
+6. created_at is preserved (not updated)
+7. updated_at is automatically updated (auto_now)
+8. Comment is saved to database
+```
+
+#### Delete Operation
+```python
+# Automatic operations during comment deletion:
+1. Comment is retrieved by primary key
+2. Permission is checked (user must be author)
+3. Comment is permanently deleted from database
+4. Related data handled by CASCADE rules
+```
+
+### Data Validation
+
+#### Form-Level Validation
+- **Content**: Required, no length limit
+- Validation occurs in `CommentForm` (ModelForm)
+
+#### Model-Level Validation
+- Django model fields enforce constraints
+- Database constraints ensure data integrity
+
+### Data Integrity
+
+#### Foreign Key Relationships
+- **Post Foreign Key**: 
+  - Links to Post model
+  - CASCADE deletion (if post deleted, comments deleted)
+  - Ensures referential integrity
+- **Author Foreign Key**: 
+  - Links to User model
+  - CASCADE deletion (if user deleted, comments deleted)
+  - Ensures referential integrity
+
+#### Automatic Fields
+- **created_at**: Automatically set, cannot be modified
+- **updated_at**: Automatically updated on every save
+- **author**: Automatically set during creation, preserved during update
+- **post**: Automatically set during creation, preserved during update
+
+### Data Display
+
+#### Date Formatting
+- Uses Django template filters: `{{ comment.created_at|date:"M d, Y H:i" }}`
+- Format: "Month Day, Year Hour:Minute" (e.g., "Feb 22, 2026 00:15")
+
+#### Content Formatting
+- Uses `{{ comment.content|linebreaks }}`
+- Preserves line breaks in content
+
+#### Edit Indicator
+- Template checks: `{% if comment.updated_at != comment.created_at %}`
+- Displays "(edited)" if comment was modified
+
+---
+
+## Testing Guide for Comments
+
+### Prerequisites
+- Django development server running
+- At least one user account created
+- At least one blog post created
+- Database migrations applied
+
+### Test View Comments
+
+#### Test Case 1: View Comments as Public User
+1. Logout (if logged in)
+2. Navigate to a post detail page
+3. **Expected Result**: 
+   - All comments are displayed
+   - Comments are ordered newest first
+   - No comment form visible
+   - Login prompt displayed
+
+#### Test Case 2: View Comments as Authenticated User
+1. Login to the application
+2. Navigate to a post detail page
+3. **Expected Result**: 
+   - All comments are displayed
+   - Comment form is visible
+   - Can add new comments
+
+### Test Add Comment
+
+#### Test Case 1: Add Comment Successfully
+1. Login to the application
+2. Navigate to a post detail page
+3. Enter comment content in the form
+4. Click "Post Comment"
+5. **Expected Result**: 
+   - Comment is created successfully
+   - Redirected to post detail page
+   - New comment appears in comments list
+   - Author is set to current user
+   - Timestamp is set correctly
+
+#### Test Case 2: Add Comment with Empty Content
+1. Login and navigate to post detail page
+2. Leave comment field empty
+3. Click "Post Comment"
+4. **Expected Result**: 
+   - Form displays validation error
+   - Comment is not created
+   - Can correct and resubmit
+
+#### Test Case 3: Add Comment as Unauthenticated User
+1. Logout
+2. Try to submit comment form (if visible)
+3. **Expected Result**: 
+   - Form is not displayed
+   - Login prompt is shown
+   - Cannot add comments
+
+### Test Edit Comment
+
+#### Test Case 1: Edit Own Comment Successfully
+1. Login as comment author
+2. Navigate to post with your comment
+3. Click "Edit" button on your comment
+4. Modify comment content
+5. Click "Update Comment"
+6. **Expected Result**: 
+   - Comment is updated successfully
+   - Redirected to post detail page
+   - Changes are visible
+   - "(edited)" indicator appears
+   - Author and post are preserved
+
+#### Test Case 2: Edit Comment as Non-Author
+1. Login as user A
+2. Create a comment
+3. Logout and login as user B
+4. Try to navigate to edit URL for user A's comment
+5. **Expected Result**: 
+   - 403 Forbidden error
+   - Cannot access edit page
+   - Comment is not modified
+
+#### Test Case 3: Edit Comment with Invalid Data
+1. Login as comment author
+2. Navigate to edit page
+3. Clear comment content
+4. Click "Update"
+5. **Expected Result**: 
+   - Form displays validation errors
+   - Comment is not updated
+   - Can correct and resubmit
+
+### Test Delete Comment
+
+#### Test Case 1: Delete Own Comment Successfully
+1. Login as comment author
+2. Navigate to post with your comment
+3. Click "Delete" button
+4. Confirm deletion
+5. **Expected Result**: 
+   - Comment is permanently deleted
+   - Redirected to post detail page
+   - Comment no longer appears in list
+
+#### Test Case 2: Delete Comment as Non-Author
+1. Login as user A
+2. Create a comment
+3. Logout and login as user B
+4. Try to navigate to delete URL for user A's comment
+5. **Expected Result**: 
+   - 403 Forbidden error
+   - Cannot access delete page
+   - Comment is not deleted
+
+### Integration Testing
+
+#### Test Case 1: Complete Comment Lifecycle
+1. Register and login
+2. Navigate to a post
+3. Add a comment
+4. Verify comment appears
+5. Edit the comment
+6. Verify changes are saved and "(edited)" appears
+7. Delete the comment
+8. Verify comment is removed
+9. **Expected Result**: 
+   - All operations complete successfully
+   - Data persists correctly
+   - Permissions work as expected
+
+#### Test Case 2: Multi-User Comment Management
+1. Create two user accounts (User A and User B)
+2. Login as User A, create a post
+3. Login as User B, add a comment to User A's post
+4. Verify User B can edit/delete their own comment
+5. Verify User A cannot edit/delete User B's comment
+6. **Expected Result**: 
+   - Users can comment on any post
+   - Users can only modify their own comments
+   - No unauthorized access occurs
+
+#### Test Case 3: Comment Count and Display
+1. Add multiple comments to a post
+2. Verify comment count is correct
+3. Verify comments are ordered newest first
+4. Verify "(edited)" indicator appears for edited comments
+5. **Expected Result**: 
+   - Comment count is accurate
+   - Comments display in correct order
+   - Edit indicators work correctly
+
+---
+
+## Additional Notes
+
+### Template Integration
+- Comments are integrated into `blog/post_detail.html`
+- Comment form is displayed inline with comments list
+- Edit/Delete buttons are conditionally displayed
+- All templates extend `blog/base.html` for consistency
+
+### Form Configuration
+- **CommentForm**: Located in `blog/forms.py`
+- Extends `ModelForm`
+- Fields: `content`
+- Includes placeholder text and styling for better UX
+
+### View Classes
+- **Comment Views**: All use Django's generic class-based views
+  - `CommentCreateView`: Extends `CreateView` with `LoginRequiredMixin`
+  - `CommentUpdateView`: Extends `UpdateView` with `LoginRequiredMixin` and `UserPassesTestMixin`
+  - `CommentDeleteView`: Extends `DeleteView` with `LoginRequiredMixin` and `UserPassesTestMixin`
+- Mixins provide authentication and permission checks
+- Custom methods handle post association and redirects
+- View class names are prefixed with "Comment" to avoid conflicts with Django's generic views
+
+### URL Structure Benefits
+- **Nested Structure**: Comments are logically nested under posts
+- **RESTful Design**: Follows REST principles
+- **Clear Hierarchy**: URLs clearly show relationships
+- **Intuitive Navigation**: Easy to understand and remember
+
+---
+
+## Conclusion
+
+The comment system provides a complete interface for users to interact with blog posts through comments. All features are fully functional and tested, with proper access control, security measures, and clear user interactions. Comments enhance user engagement and provide a way for readers to discuss blog content.
+
+For additional information, refer to:
+- [Django Class-Based Views](https://docs.djangoproject.com/en/stable/topics/class-based-views/)
+- [Django Generic Views](https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-display/)
+- [Django Model Relationships](https://docs.djangoproject.com/en/stable/topics/db/models/#relationships)
 
 ---
 
