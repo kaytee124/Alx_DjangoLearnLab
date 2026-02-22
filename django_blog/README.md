@@ -8,6 +8,7 @@
 5. [Detailed Feature Documentation](#detailed-feature-documentation)
 6. [Testing Guide](#testing-guide)
 7. [Technical Implementation](#technical-implementation)
+8. [Tagging and Search System Documentation](#tagging-and-search-system-documentation)
 
 ---
 
@@ -2105,6 +2106,324 @@ All comment URLs follow a nested structure under posts for better organization:
 - **RESTful Design**: Follows REST principles
 - **Clear Hierarchy**: URLs clearly show relationships
 - **Intuitive Navigation**: Easy to understand and remember
+
+---
+
+## Tagging and Search System Documentation
+
+### Overview
+
+The blog includes a comprehensive tagging system that allows posts to be categorized and a powerful search functionality that enables users to find content quickly. Tags help organize posts by topic, while the search feature allows users to search across post titles, content, and tags.
+
+---
+
+## Tagging System
+
+### What are Tags?
+
+Tags are keywords or labels that categorize blog posts by topic, making it easier for users to find related content. Each post can have multiple tags, and each tag can be associated with multiple posts.
+
+### Features
+
+- **Automatic Tag Creation**: Tags are automatically created when you add them to a post
+- **Case-Insensitive**: Tag names are normalized to lowercase (e.g., "Python" and "python" are treated as the same tag)
+- **Duplicate Prevention**: Duplicate tags are automatically removed
+- **Clickable Tags**: Tags are clickable links that filter posts by that tag
+- **Visual Display**: Tags are displayed as styled badges on posts
+
+---
+
+### How to Add Tags to Posts
+
+#### For Authors (Creating/Editing Posts)
+
+1. **Navigate to Create/Edit Post**:
+   - Click "Create Post" button (when logged in)
+   - Or click "Edit" on an existing post you authored
+
+2. **Fill in Post Details**:
+   - Enter the post title
+   - Enter the post content
+
+3. **Add Tags**:
+   - In the "Tags" field, enter tags separated by commas
+   - Example: `python, django, web development, tutorial`
+   - Tags can contain spaces, hyphens, and special characters
+   - Maximum tag length: 50 characters
+
+4. **Submit the Form**:
+   - Click "Create Post" or "Update Post"
+   - Tags are automatically:
+     - Trimmed of whitespace
+     - Converted to lowercase
+     - Deduplicated
+     - Created if they don't exist in the database
+
+#### Tag Input Examples
+
+**Valid Tag Inputs**:
+```
+python, django, web development
+Python, Django, Web Development  (case doesn't matter)
+python,django,web development    (spaces around commas optional)
+python, django, python           (duplicates automatically removed)
+```
+
+**Result**: All inputs above would create/use tags: `python`, `django`, `web development`
+
+#### Tag Best Practices
+
+- **Use Descriptive Tags**: Choose tags that accurately describe the post content
+- **Be Consistent**: Use similar tags for related posts (e.g., always use "python" not "Python" or "Python Programming")
+- **Don't Over-Tag**: 3-5 relevant tags per post is usually sufficient
+- **Use Lowercase**: While the system normalizes case, using lowercase consistently helps
+
+---
+
+### Viewing Posts by Tag
+
+#### Method 1: Click on a Tag
+
+1. **Navigate to a Post**:
+   - Go to any blog post detail page
+   - Or view the post list
+
+2. **Click a Tag**:
+   - Tags are displayed as blue badges
+   - Click any tag to see all posts with that tag
+   - URL format: `/blog/tags/<tag-name>/`
+
+3. **View Filtered Results**:
+   - Page shows "Posts tagged with '[tag name]'"
+   - Displays all posts with that tag
+   - Click "View all posts" to clear the filter
+
+#### Method 2: Direct URL Access
+
+- Navigate directly to: `/blog/tags/python/`
+- Works with any tag name (case-insensitive)
+- Returns 404 if tag doesn't exist
+
+#### Tag Filtering Features
+
+- **Case-Insensitive**: `/blog/tags/Python/` and `/blog/tags/python/` show the same results
+- **URL Encoding**: Special characters in tag names are automatically handled
+- **Empty State**: Shows helpful message if no posts have that tag
+- **Pagination**: Large result sets are paginated (10 posts per page)
+
+---
+
+## Search Functionality
+
+### Overview
+
+The search feature allows users to find posts by searching across:
+- **Post Titles**: Searches for keywords in post titles
+- **Post Content**: Searches for keywords in post content
+- **Tags**: Searches for keywords in tag names
+
+### How to Use the Search Bar
+
+#### Step-by-Step Guide
+
+1. **Locate the Search Bar**:
+   - **Header Navigation**: Search bar is available in the header on all pages
+   - **Post List Page**: Additional search bar in the authenticated user navigation
+
+2. **Enter Your Search Query**:
+   - Type keywords, phrases, or tag names into the search box
+   - Examples:
+     - `python`
+     - `django tutorial`
+     - `web development`
+     - `authentication`
+
+3. **Submit the Search**:
+   - Click the "Search" button
+   - Or press Enter in the search field
+   - URL format: `/blog/search/?q=your-query`
+
+4. **View Search Results**:
+   - Page displays "Search Results for '[your query]'"
+   - Shows all posts matching your search
+   - Results include:
+     - Post title (clickable link)
+     - Post content preview (truncated)
+     - Author and publication date
+     - Associated tags
+
+5. **Clear Search**:
+   - Click "View all posts" link
+   - Or navigate to `/blog/posts/` or `/blog/`
+
+---
+
+### Search Features
+
+#### Case-Insensitive Search
+
+- Searches are not case-sensitive
+- `Python`, `python`, and `PYTHON` return the same results
+
+#### Multi-Field Search
+
+The search looks in multiple fields simultaneously:
+- **Title Match**: Posts with search term in title
+- **Content Match**: Posts with search term in content
+- **Tag Match**: Posts with tags containing the search term
+
+**Example**: Searching "django" will find:
+- Posts with "django" in the title
+- Posts mentioning "django" in the content
+- Posts tagged with "django"
+
+#### Partial Matching
+
+- Uses `icontains` lookup (case-insensitive contains)
+- Finds partial matches within words
+- Example: Searching "web" finds "web", "website", "web development"
+
+#### Duplicate Prevention
+
+- Uses `.distinct()` to prevent duplicate results
+- A post appears only once even if it matches multiple criteria
+
+---
+
+### Search Tips and Best Practices
+
+#### Effective Search Strategies
+
+1. **Use Specific Keywords**:
+   - ✅ Good: `django authentication`
+   - ❌ Less effective: `how to`
+
+2. **Search by Tag Name**:
+   - Tags are searchable, so searching a tag name finds all posts with that tag
+   - Example: Search "python" to find all Python-related posts
+
+3. **Combine Keywords**:
+   - Search for multiple related terms
+   - Example: `django tutorial beginner`
+
+4. **Use Partial Words**:
+   - Partial matches work, so "web" finds "website", "web development", etc.
+
+#### What Search Does NOT Do
+
+- ❌ Full-text search with ranking
+- ❌ Boolean operators (AND, OR, NOT)
+- ❌ Phrase matching (exact phrases)
+- ❌ Search in comments (only searches posts)
+- ❌ Search by author name
+
+---
+
+### Search Results Display
+
+#### Result Information
+
+Each search result shows:
+- **Post Title**: Clickable link to full post
+- **Content Preview**: First 100 characters of post content
+- **Author**: Username of post author
+- **Publication Date**: When the post was published
+- **Tags**: All tags associated with the post (clickable)
+
+#### Empty Results
+
+If no posts match your search:
+- Message: "No posts found matching '[your query]'"
+- Link to view all posts
+- Suggestion to try different keywords
+
+#### Result Count
+
+- Shows total number of matching posts
+- Format: "Found X post(s)."
+
+---
+
+### URL Patterns
+
+#### Search URLs
+
+- **Search**: `/blog/search/?q=query`
+- **Tag Filter**: `/blog/tags/<tag-name>/`
+- **All Posts**: `/blog/` or `/blog/posts/`
+
+#### Examples
+
+```
+/blog/search/?q=python
+/blog/search/?q=django%20tutorial
+/blog/tags/python/
+/blog/tags/web-development/
+```
+
+---
+
+### Technical Details
+
+#### Search Implementation
+
+- **View**: `PostListView` with custom `get_queryset()` method
+- **Query Method**: Django Q objects for complex lookups
+- **Search Fields**: `title`, `content`, `tags__name`
+- **Lookup Type**: `icontains` (case-insensitive contains)
+
+#### Tag Implementation
+
+- **Model**: `Tag` model with `name` field (unique, max 50 chars)
+- **Relationship**: Many-to-many with `Post` model
+- **View**: `TagPostListView` for tag filtering
+- **Normalization**: Tags are stored in lowercase
+
+---
+
+### User Workflows
+
+#### Workflow 1: Finding Posts by Topic
+
+1. User wants to find all posts about "Python"
+2. Options:
+   - **Search**: Enter "python" in search bar → finds posts with "python" in title/content/tags
+   - **Tag Filter**: Click "python" tag on any post → shows only posts tagged "python"
+3. Review results and click desired post
+
+#### Workflow 2: Discovering Related Content
+
+1. User reads a post about "Django Authentication"
+2. Post has tags: `django`, `authentication`, `tutorial`
+3. User clicks "django" tag
+4. Views all Django-related posts
+5. Finds related content easily
+
+#### Workflow 3: Quick Content Search
+
+1. User remembers a post title contains "REST API"
+2. Enters "REST API" in search bar
+3. Finds the post quickly
+4. Clicks to read full post
+
+---
+
+## Conclusion
+
+The tagging and search system provides powerful tools for organizing and discovering blog content. Tags help categorize posts and enable topic-based browsing, while the search functionality allows users to quickly find specific content across the entire blog.
+
+### Key Benefits
+
+- **Better Organization**: Tags categorize posts by topic
+- **Easy Discovery**: Click tags to find related content
+- **Quick Search**: Find posts by keywords in seconds
+- **User-Friendly**: Intuitive interface with clear visual feedback
+- **Automatic Management**: Tags are created automatically, no manual setup needed
+
+For additional information, refer to:
+- [Django Q Objects](https://docs.djangoproject.com/en/stable/topics/db/queries/#complex-lookups-with-q-objects)
+- [Django Many-to-Many Relationships](https://docs.djangoproject.com/en/stable/topics/db/examples/many_to_many/)
+- [Django QuerySet API](https://docs.djangoproject.com/en/stable/ref/models/querysets/)
 
 ---
 

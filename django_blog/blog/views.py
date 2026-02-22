@@ -1,9 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, UserProfileForm, PostForm, CommentForm
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
+from django.db.models import Q
+from urllib.parse import unquote
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -40,6 +42,59 @@ class PostListView(ListView):
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
     ordering = ['-published_date']
+    paginate_by = 10  # Optional: pagination for large result sets
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            # Use Q objects for complex query lookups
+            # Search in title, content, and tags (case-insensitive)
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct()  # distinct() prevents duplicate results when a post has multiple matching tags
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '').strip()
+        context['search_query'] = query
+        context['is_search'] = bool(query)
+        return context
+
+
+class TagPostListView(ListView):
+    """View to display posts filtered by a specific tag"""
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    ordering = ['-published_date']
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Get tag name from URL parameter and decode it
+        tag_name = unquote(self.kwargs.get('tag_name', ''))
+        # Get tag object (case-insensitive lookup)
+        tag = get_object_or_404(Tag, name__iexact=tag_name)
+        # Filter posts by tag
+        return Post.objects.filter(tags=tag).distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Decode tag name from URL
+        tag_name = unquote(self.kwargs.get('tag_name', ''))
+        # Get the actual tag object for display (preserves original case)
+        try:
+            tag = Tag.objects.get(name__iexact=tag_name)
+            context['tag'] = tag
+            context['tag_name'] = tag.name
+        except Tag.DoesNotExist:
+            context['tag'] = None
+            context['tag_name'] = tag_name
+        context['is_tag_filter'] = True
+        return context
 
 class PostDetailView(DetailView):
     model = Post
