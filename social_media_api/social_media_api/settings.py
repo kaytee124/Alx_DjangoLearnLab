@@ -36,7 +36,11 @@ def get_env_variable(var_name, default=None):
 SECRET_KEY = get_env_variable('SECRET_KEY', 'django-insecure-z$22(#d#4pj2k9_1ahdhms^ggrl7!d3c2bb7hnf740eem_%oxu')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_env_variable('DEBUG', 'False').lower() == 'true'
+# Default to False for production
+DEBUG = False
+# Allow override via environment variable for development
+if os.getenv('DEBUG', '').lower() == 'true':
+    DEBUG = True
 
 # ALLOWED_HOSTS - Set this in production!
 ALLOWED_HOSTS = get_env_variable('ALLOWED_HOSTS', '').split(',') if get_env_variable('ALLOWED_HOSTS', '') else []
