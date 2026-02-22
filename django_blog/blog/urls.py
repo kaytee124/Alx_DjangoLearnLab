@@ -20,7 +20,10 @@ urlpatterns = [
     path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post_update'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
     # Comment URLs - nested under posts for better structure
-    path('post/<int:post_id>/comments/new/', views.CommentCreateView.as_view(), name='comment_create'),
+    path('post/<int:pk>/comments/new/', views.CommentCreateView.as_view(), name='comment_create'),
     path('post/<int:post_id>/comments/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment_update'),
     path('post/<int:post_id>/comments/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete'),
+    # Flat comment URLs (for checks/compatibility)
+    path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment_update_alt'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete_alt'),
 ]
