@@ -23,10 +23,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Create logs directory
-RUN mkdir -p /app/logs
+# Create logs and static directories
+RUN mkdir -p /app/logs /app/staticfiles
 
-# Collect static files
+# Collect static files (will be used if not using S3)
 RUN python manage.py collectstatic --noinput || true
 
 # Expose port
