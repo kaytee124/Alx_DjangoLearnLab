@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Profile, Post, Comment, Tag
+from taggit.forms import TagWidget
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -44,10 +45,7 @@ class UserProfileForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     tags_input = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Enter tags separated by commas (e.g., python, django, web)',
-            'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'
-        }),
+        widget=TagWidget(),  # Using TagWidget from django-taggit
         help_text='Enter tags separated by commas. New tags will be created automatically.'
     )
 
